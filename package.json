@@ -1,0 +1,32 @@
+{
+  "name": "which-where",
+  "version": "1.0.0",
+  "description": "Analyze where a command comes from and how to manage it",
+  "main": "index.js",
+  "bin": {
+    "which-where": "./index.js"
+  },
+  "keywords": [
+    "which",
+    "cli",
+    "homebrew",
+    "npm",
+    "cargo",
+    "go"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "ava": "^6.4.1"
+  },
+  "scripts": {
+    "test": "ava"
+  },
+  "ava": {
+    "files": [
+      "src/**/*.test.js"
+    ]
+  },
+  "dependencies": {
+    "ansi-colors": "^4.1.3"
+  }
+}
