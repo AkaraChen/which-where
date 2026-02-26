@@ -18,7 +18,7 @@ export function checkYarn(name, cmdPath) {
     path.join(home, 'Library', 'pnpm')
   ];
 
-  const isYarnPath = yarnPaths.some(p => cmdPath.startsWith(p) || cmdPath.includes(p));
+  const isYarnPath = yarnPaths.some(p => cmdPath.includes(p));
   if (!isYarnPath) return null;
 
   return {

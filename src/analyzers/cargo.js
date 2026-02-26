@@ -4,6 +4,18 @@
 
 import { exec } from '../utils.js';
 
+const TOOLCHAIN_COMPONENTS = new Set([
+  'cargo',
+  'rustc',
+  'rustup',
+  'rustdoc',
+  'rls',
+  'rustfmt',
+  'clippy-driver',
+  'cargo-fmt',
+  'cargo-clippy'
+]);
+
 /**
  * Check if a command is installed via Cargo/Rust
  * @param {string} name - Command name
@@ -22,19 +34,7 @@ export function checkCargo(name, cmdPath) {
     return null;
   }
 
-  // Check if it's a rustup-managed toolchain component
-  const toolchainComponents = [
-    'cargo',
-    'rustc',
-    'rustup',
-    'rustdoc',
-    'rls',
-    'rustfmt',
-    'clippy-driver',
-    'cargo-fmt',
-    'cargo-clippy'
-  ];
-  if (toolchainComponents.includes(name)) {
+  if (TOOLCHAIN_COMPONENTS.has(name)) {
     return {
       type: 'Rustup (Rust toolchain)',
       name: `rust-toolchain (${name})`,
@@ -47,28 +47,7 @@ export function checkCargo(name, cmdPath) {
     };
   }
 
-  // Try to find the crate name from cargo install --list
-  let crateName = name;
-  const cargoList = exec('cargo install --list 2>/dev/null');
-
-  if (cargoList) {
-    const lines = cargoList.split('\n');
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i];
-      const crateMatch = line.match(/^(\S+)\s+v[\d.]+:/);
-      if (crateMatch) {
-        const currentCrate = crateMatch[1];
-        for (let j = i + 1; j < Math.min(i + 10, lines.length); j++) {
-          const binLine = lines[j];
-          if (binLine.trim() === '' || binLine.match(/^\S+\s+v[\d.]+:/)) break;
-          if (binLine.includes(name)) {
-            crateName = currentCrate;
-            break;
-          }
-        }
-      }
-    }
-  }
+  const crateName = findCrateName(name) || name;
 
   return {
     type: 'Cargo (Rust)',
@@ -83,4 +62,35 @@ export function checkCargo(name, cmdPath) {
         ? `Found in cargo install --list as '${crateName}'`
         : 'Path matches cargo bin directory'
   };
+}
+
+/**
+ * Find the crate name that provides a given binary
+ * @param {string} binName - Binary name to look up
+ * @returns {string|null} - Crate name or null if not found
+ */
+function findCrateName(binName) {
+  const cargoList = exec('cargo install --list 2>/dev/null');
+  if (!cargoList) return null;
+
+  const lines = cargoList.split('\n');
+  let currentCrate = null;
+
+  for (const line of lines) {
+    const crateMatch = line.match(/^(\S+)\s+v[\d.]+:/);
+    if (crateMatch) {
+      currentCrate = crateMatch[1];
+      continue;
+    }
+
+    if (currentCrate && line.includes(binName)) {
+      return currentCrate;
+    }
+
+    if (line.trim() === '') {
+      currentCrate = null;
+    }
+  }
+
+  return null;
 }

@@ -18,7 +18,7 @@ export function checkPnpm(name, cmdPath) {
     path.join(home, 'Library', 'pnpm')
   ];
 
-  const isPnpmPath = pnpmPaths.some(p => cmdPath.startsWith(p) || cmdPath.includes(p));
+  const isPnpmPath = pnpmPaths.some(p => cmdPath.includes(p));
   if (!isPnpmPath) return null;
 
   return {

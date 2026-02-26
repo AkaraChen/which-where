@@ -20,38 +20,44 @@ export function analyzeCommand(name, verbose = false) {
     return null;
   }
 
-  // First check for shims - version managers create shims that wrap actual package managers
-  const shimResult = detectShim(name, cmdPath);
-  if (shimResult) {
-    return verbose ? enrichWithVerboseData(shimResult, cmdPath) : shimResult;
+  const result = detectShim(name, cmdPath) || runAnalyzers(name, cmdPath);
+
+  if (!result) {
+    return null;
   }
 
-  // Run analyzers in order - version managers first, then package managers
+  return verbose ? enrichWithVerboseData(result, cmdPath) : result;
+}
+
+/**
+ * Run analyzers in priority order, returning fallback if none match
+ * @param {string} name - Command name
+ * @param {string} cmdPath - Full path to the command
+ * @returns {Object} - Analysis result (always returns, uses fallback)
+ */
+function runAnalyzers(name, cmdPath) {
   const analyzerOrder = [
-    analyzers.checkNvm, // Node.js version managers (nvm, fnm, volta)
-    analyzers.checkBun, // Bun package manager
-    analyzers.checkBrew, // Homebrew (checked early for macOS)
-    analyzers.checkCargo, // Rust/Cargo
-    analyzers.checkGo, // Go modules
-    analyzers.checkPnpm, // pnpm
-    analyzers.checkYarn, // yarn
-    analyzers.checkBrewNpm, // npm via Homebrew Node.js
-    analyzers.checkNpm, // npm
-    analyzers.checkPip, // Python pip
-    analyzers.checkSystem // System packages (apt, pacman, dnf, pkgutil)
+    analyzers.checkNvm,
+    analyzers.checkBun,
+    analyzers.checkBrew,
+    analyzers.checkCargo,
+    analyzers.checkGo,
+    analyzers.checkPnpm,
+    analyzers.checkYarn,
+    analyzers.checkBrewNpm,
+    analyzers.checkNpm,
+    analyzers.checkPip,
+    analyzers.checkSystem
   ];
 
   for (const analyzer of analyzerOrder) {
     const result = analyzer(name, cmdPath);
-
     if (result) {
-      // Got a valid result
-      return verbose ? enrichWithVerboseData(result, cmdPath) : result;
+      return result;
     }
   }
 
-  // If we got a pass-through but no final result, return the original fallback
-  const fallback = {
+  return {
     type: 'Unknown',
     name: name,
     path: cmdPath,
@@ -60,8 +66,6 @@ export function analyzeCommand(name, verbose = false) {
     update: 'N/A',
     info: `file ${cmdPath}`
   };
-
-  return verbose ? enrichWithVerboseData(fallback, cmdPath) : fallback;
 }
 
 /**
@@ -71,53 +75,63 @@ export function analyzeCommand(name, verbose = false) {
  * @returns {Object} - Enriched result
  */
 function enrichWithVerboseData(result, cmdPath) {
-  // Check if it's a symlink and get real path
-  try {
-    if (fs.lstatSync(cmdPath).isSymbolicLink()) {
-      result.realPath = fs.realpathSync(cmdPath);
-      result.fileType = 'symbolic link';
+  addSymlinkInfo(result, cmdPath);
+  addFileSize(result, cmdPath);
+  addShebangInfo(result, cmdPath);
+  return result;
+}
 
-      // Extract shim info from real path
-      if (result.realPath.includes('/Cellar/')) {
-        const cellarMatch = result.realPath.match(/\/Cellar\/([^/]+)\/([^/]+)/);
-        if (cellarMatch) {
-          result.shimDetails = {
-            manager: 'Homebrew',
-            formula: cellarMatch[1],
-            version: cellarMatch[2],
-            actualManager: 'Homebrew'
-          };
-          // Update type to show it's a homebrew shim
-          if (!result.type.includes('shim')) {
-            result.type = `Homebrew shim -> ${cellarMatch[1]}`;
-          }
-        }
-      }
-    } else {
+/**
+ * Add symlink and Homebrew Cellar details to the result
+ */
+function addSymlinkInfo(result, cmdPath) {
+  try {
+    if (!fs.lstatSync(cmdPath).isSymbolicLink()) {
       result.fileType = 'file';
+      return;
+    }
+
+    result.realPath = fs.realpathSync(cmdPath);
+    result.fileType = 'symbolic link';
+
+    const cellarMatch = result.realPath.match(/\/Cellar\/([^/]+)\/([^/]+)/);
+    if (cellarMatch) {
+      result.shimDetails = {
+        manager: 'Homebrew',
+        formula: cellarMatch[1],
+        version: cellarMatch[2],
+        actualManager: 'Homebrew'
+      };
+      if (!result.type.includes('shim')) {
+        result.type = `Homebrew shim -> ${cellarMatch[1]}`;
+      }
     }
   } catch {
     result.fileType = 'unknown';
   }
+}
 
-  // Get file size
+/**
+ * Add file size to the result
+ */
+function addFileSize(result, cmdPath) {
   try {
-    const stats = fs.statSync(cmdPath);
-    result.fileSize = stats.size;
+    result.fileSize = fs.statSync(cmdPath).size;
   } catch {
-    // Can't stat
+    // Cannot stat file
   }
+}
 
-  // Check if it's a script (shebang)
+/**
+ * Add shebang/interpreter info to the result
+ */
+function addShebangInfo(result, cmdPath) {
   try {
     const content = fs.readFileSync(cmdPath, 'utf-8');
     if (content.startsWith('#!')) {
-      const shebangLine = content.split('\n')[0];
-      result.target = shebangLine;
+      result.target = content.split('\n')[0];
     }
   } catch {
-    // Binary or can't read
+    // Binary or unreadable
   }
-
-  return result;
 }

@@ -11,17 +11,11 @@ import fs from 'fs';
  * @returns {Object|null} - Shim info or null
  */
 export function detectShim(name, cmdPath) {
-  // Check for various shim patterns
   const shimInfo =
     checkFnmShim(name, cmdPath) ||
     checkNvmShim(name, cmdPath) ||
     checkVoltaShim(name, cmdPath) ||
-    checkAsdfShim(name, cmdPath) ||
-    checkRbenvShim(name, cmdPath) ||
-    checkPyenvShim(name, cmdPath) ||
-    checkSdkmanShim(name, cmdPath) ||
-    checkMiseShim(name, cmdPath) ||
-    checkRtxShim(name, cmdPath);
+    checkSimpleShim(name, cmdPath);
 
   if (shimInfo) {
     shimInfo.isShim = true;
@@ -32,15 +26,13 @@ export function detectShim(name, cmdPath) {
 }
 
 /**
- * Check if path is an fnm shim
+ * Check if path is an fnm shim.
  * fnm creates shims that point to .fnm/versions/<version>/bin/<cmd>
  */
 function checkFnmShim(name, cmdPath) {
-  const fnmPatterns = ['.fnm/shims', '/.fnm/shims'];
-  const isFnmShimPath = fnmPatterns.some(p => cmdPath.includes(p));
+  const isFnmShimPath = cmdPath.includes('.fnm/shims') || cmdPath.includes('/.fnm/shims');
 
   if (!isFnmShimPath) {
-    // Also check if it's a symlink to fnm
     try {
       if (fs.lstatSync(cmdPath).isSymbolicLink()) {
         const realPath = fs.realpathSync(cmdPath);
@@ -57,12 +49,13 @@ function checkFnmShim(name, cmdPath) {
   return buildFnmResult(name, cmdPath, null);
 }
 
+/**
+ * Build an fnm shim result, detecting the actual package manager from shim content
+ */
 function buildFnmResult(name, shimPath, realPath) {
-  // Try to determine the actual package manager by reading the shim
   let actualManager = 'npm (Node.js)';
   let reinstallCmd = `npm install -g ${name}`;
 
-  // Read shim content to determine actual manager
   try {
     const shimContent = fs.readFileSync(shimPath, 'utf-8');
     if (shimContent.includes('yarn')) {
@@ -82,7 +75,6 @@ function buildFnmResult(name, shimPath, realPath) {
     // Can't read shim
   }
 
-  // If we have a real path, try to extract version
   let version = 'current';
   if (realPath) {
     const versionMatch = realPath.match(/\.fnm\/versions\/node-([^/]+)/);
@@ -112,8 +104,7 @@ function buildFnmResult(name, shimPath, realPath) {
  * Check if path is an nvm shim/wrapper
  */
 function checkNvmShim(name, cmdPath) {
-  const nvmPatterns = ['/.nvm/versions/node/', '/.nvm/nvm-exec'];
-  const isNvmPath = nvmPatterns.some(p => cmdPath.includes(p));
+  const isNvmPath = cmdPath.includes('/.nvm/versions/node/') || cmdPath.includes('/.nvm/nvm-exec');
 
   if (!isNvmPath) return null;
 
@@ -144,9 +135,7 @@ function checkNvmShim(name, cmdPath) {
  * Check if path is a volta shim
  */
 function checkVoltaShim(name, cmdPath) {
-  const voltaPatterns = ['/.volta/', 'volta/'];
-  const isVoltaPath = voltaPatterns.some(p => cmdPath.includes(p));
-
+  const isVoltaPath = cmdPath.includes('/.volta/') || cmdPath.includes('volta/');
   if (!isVoltaPath) return null;
 
   return {
@@ -167,151 +156,112 @@ function checkVoltaShim(name, cmdPath) {
 }
 
 /**
- * Check if path is an asdf shim
+ * Simple shim configurations that share the same detection pattern:
+ * check if the command path matches known directory patterns.
  */
-function checkAsdfShim(name, cmdPath) {
-  const asdfPatterns = ['/.asdf/', '/asdf/'];
-  const isAsdfPath = asdfPatterns.some(p => cmdPath.includes(p));
-
-  if (!isAsdfPath) return null;
-
-  return {
+const SIMPLE_SHIMS = [
+  {
+    patterns: ['/.asdf/', '/asdf/'],
     type: 'asdf shim',
-    name: name,
-    path: cmdPath,
-    install: 'asdf install <plugin> <version>',
-    reinstall: 'asdf reshim <plugin>',
-    uninstall: 'asdf uninstall <plugin> <version>',
-    info: `asdf list && asdf where ${name}`,
-    shimDetails: {
-      manager: 'asdf',
-      version: 'configured',
-      actualManager: 'asdf'
-    }
-  };
-}
-
-/**
- * Check if path is an rbenv shim
- */
-function checkRbenvShim(name, cmdPath) {
-  const rbenvPatterns = ['/.rbenv/', '/rbenv/'];
-  const isRbenvPath = rbenvPatterns.some(p => cmdPath.includes(p));
-
-  if (!isRbenvPath) return null;
-
-  return {
+    manager: 'asdf',
+    actualManager: 'asdf',
+    version: 'configured',
+    commands: name => ({
+      install: 'asdf install <plugin> <version>',
+      reinstall: 'asdf reshim <plugin>',
+      uninstall: 'asdf uninstall <plugin> <version>',
+      info: `asdf list && asdf where ${name}`
+    })
+  },
+  {
+    patterns: ['/.rbenv/', '/rbenv/'],
     type: 'rbenv shim',
-    name: name,
-    path: cmdPath,
-    install: 'rbenv install <version>',
-    reinstall: 'rbenv rehash',
-    uninstall: 'rbenv uninstall <version>',
-    info: `rbenv versions && gem which ${name}`,
-    shimDetails: {
-      manager: 'rbenv',
-      version: 'configured',
-      actualManager: 'Ruby Gems'
-    }
-  };
-}
-
-/**
- * Check if path is a pyenv shim
- */
-function checkPyenvShim(name, cmdPath) {
-  const pyenvPatterns = ['/.pyenv/', '/pyenv/'];
-  const isPyenvPath = pyenvPatterns.some(p => cmdPath.includes(p));
-
-  if (!isPyenvPath) return null;
-
-  return {
+    manager: 'rbenv',
+    actualManager: 'Ruby Gems',
+    version: 'configured',
+    commands: name => ({
+      install: 'rbenv install <version>',
+      reinstall: 'rbenv rehash',
+      uninstall: 'rbenv uninstall <version>',
+      info: `rbenv versions && gem which ${name}`
+    })
+  },
+  {
+    patterns: ['/.pyenv/', '/pyenv/'],
     type: 'pyenv shim',
-    name: name,
-    path: cmdPath,
-    install: `pyenv install <version> && pip install ${name}`,
-    reinstall: 'pyenv rehash',
-    uninstall: `pip uninstall ${name}`,
-    info: `pyenv versions && pip show ${name}`,
-    shimDetails: {
-      manager: 'pyenv',
-      version: 'configured',
-      actualManager: 'pip'
-    }
-  };
-}
-
-/**
- * Check if path is an sdkman shim
- */
-function checkSdkmanShim(name, cmdPath) {
-  const sdkmanPatterns = ['/.sdkman/', '/sdkman/'];
-  const isSdkmanPath = sdkmanPatterns.some(p => cmdPath.includes(p));
-
-  if (!isSdkmanPath) return null;
-
-  return {
+    manager: 'pyenv',
+    actualManager: 'pip',
+    version: 'configured',
+    commands: name => ({
+      install: `pyenv install <version> && pip install ${name}`,
+      reinstall: 'pyenv rehash',
+      uninstall: `pip uninstall ${name}`,
+      info: `pyenv versions && pip show ${name}`
+    })
+  },
+  {
+    patterns: ['/.sdkman/', '/sdkman/'],
     type: 'SDKMAN! shim',
-    name: name,
-    path: cmdPath,
-    install: `sdk install ${name}`,
-    reinstall: `sdk reinstall ${name}`,
-    uninstall: `sdk uninstall ${name}`,
-    info: `sdk list ${name}`,
-    shimDetails: {
-      manager: 'sdkman',
-      version: 'current',
-      actualManager: 'SDKMAN!'
-    }
-  };
-}
-
-/**
- * Check if path is a mise (formerly rtx) shim
- */
-function checkMiseShim(name, cmdPath) {
-  const misePatterns = ['/.local/share/mise/', '/mise/'];
-  const isMisePath = misePatterns.some(p => cmdPath.includes(p));
-
-  if (!isMisePath) return null;
-
-  return {
+    manager: 'sdkman',
+    actualManager: 'SDKMAN!',
+    version: 'current',
+    commands: name => ({
+      install: `sdk install ${name}`,
+      reinstall: `sdk reinstall ${name}`,
+      uninstall: `sdk uninstall ${name}`,
+      info: `sdk list ${name}`
+    })
+  },
+  {
+    patterns: ['/.local/share/mise/', '/mise/'],
     type: 'mise shim',
-    name: name,
-    path: cmdPath,
-    install: `mise install ${name}`,
-    reinstall: `mise reshim ${name}`,
-    uninstall: `mise uninstall ${name}`,
-    info: `mise list && mise where ${name}`,
-    shimDetails: {
-      manager: 'mise',
-      version: 'configured',
-      actualManager: 'mise'
-    }
-  };
-}
+    manager: 'mise',
+    actualManager: 'mise',
+    version: 'configured',
+    commands: name => ({
+      install: `mise install ${name}`,
+      reinstall: `mise reshim ${name}`,
+      uninstall: `mise uninstall ${name}`,
+      info: `mise list && mise where ${name}`
+    })
+  },
+  {
+    patterns: ['/.local/share/rtx/', '/rtx/'],
+    type: 'rtx shim (now mise)',
+    manager: 'rtx/mise',
+    actualManager: 'mise',
+    version: 'configured',
+    commands: name => ({
+      install: `mise install ${name}`,
+      reinstall: `mise reshim ${name}`,
+      uninstall: `mise uninstall ${name}`,
+      info: `mise list && mise where ${name}`
+    })
+  }
+];
 
 /**
- * Check if path is an rtx shim (old name for mise)
+ * Check if the path matches any of the simple shim patterns
+ * @param {string} name - Command name
+ * @param {string} cmdPath - Full path to the command
+ * @returns {Object|null} - Shim result or null
  */
-function checkRtxShim(name, cmdPath) {
-  const rtxPatterns = ['/.local/share/rtx/', '/rtx/'];
-  const isRtxPath = rtxPatterns.some(p => cmdPath.includes(p));
+function checkSimpleShim(name, cmdPath) {
+  for (const shim of SIMPLE_SHIMS) {
+    if (!shim.patterns.some(p => cmdPath.includes(p))) continue;
 
-  if (!isRtxPath) return null;
+    return {
+      type: shim.type,
+      name: name,
+      path: cmdPath,
+      ...shim.commands(name),
+      shimDetails: {
+        manager: shim.manager,
+        version: shim.version,
+        actualManager: shim.actualManager
+      }
+    };
+  }
 
-  return {
-    type: 'rtx shim (now mise)',
-    name: name,
-    path: cmdPath,
-    install: `mise install ${name}`,
-    reinstall: `mise reshim ${name}`,
-    uninstall: `mise uninstall ${name}`,
-    info: `mise list && mise where ${name}`,
-    shimDetails: {
-      manager: 'rtx/mise',
-      version: 'configured',
-      actualManager: 'mise'
-    }
-  };
+  return null;
 }

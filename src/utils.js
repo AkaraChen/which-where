@@ -22,6 +22,5 @@ export function exec(command) {
  * @returns {string|null} - Homebrew prefix or null if not installed
  */
 export function getBrewPrefix() {
-  const result = exec('brew --prefix');
-  return result;
+  return exec('brew --prefix');
 }

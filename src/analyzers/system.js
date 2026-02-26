@@ -16,7 +16,7 @@ export function checkSystem(name, cmdPath) {
   const isSystemPath = systemPaths.some(p => cmdPath.startsWith(p));
   if (!isSystemPath) return null;
 
-  // macOS: Check for pkgutil (early return on match)
+  // macOS: pkgutil
   if (exec('which pkgutil')) {
     const pkgInfo = exec(`pkgutil -f ${cmdPath} 2>/dev/null`);
     if (pkgInfo) {
@@ -33,7 +33,7 @@ export function checkSystem(name, cmdPath) {
     }
   }
 
-  // Linux: Check for apt/dpkg (early return on match)
+  // Linux: apt/dpkg
   if (exec('which dpkg')) {
     const pkg = exec(`dpkg -S ${cmdPath} 2>/dev/null`);
     if (pkg && !pkg.includes('no path found')) {
@@ -50,7 +50,7 @@ export function checkSystem(name, cmdPath) {
     }
   }
 
-  // Linux: Check for pacman (early return on match)
+  // Linux: pacman
   if (exec('which pacman')) {
     const pkg = exec(`pacman -Qo ${cmdPath} 2>/dev/null`);
     if (pkg) {
@@ -67,7 +67,7 @@ export function checkSystem(name, cmdPath) {
     }
   }
 
-  // Linux: Check for dnf/rpm (early return on match)
+  // Linux: dnf/rpm
   if (exec('which dnf')) {
     const pkg = exec(`dnf provide ${cmdPath} 2>/dev/null`);
     if (pkg) {
@@ -87,8 +87,7 @@ export function checkSystem(name, cmdPath) {
     }
   }
 
-  // Fallback for system commands without package manager info
-  // Be honest - we don't know how to manage this
+  // Fallback when no package manager claims the command
   return {
     type: 'System (unknown package)',
     name: name,

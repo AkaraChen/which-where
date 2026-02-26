@@ -36,7 +36,7 @@ export function checkNpm(name, cmdPath) {
       }
     }
   } catch {
-    // Not a symlink
+    // Cannot resolve symlink
   }
 
   return {
@@ -83,11 +83,12 @@ export function checkBrewNpm(name, cmdPath) {
     }
 
     // Check if it's an npm package (via realPath or symlink target)
-    const npmPathToCheck = realPath.includes('/lib/node_modules/')
-      ? realPath
-      : symlinkTarget && symlinkTarget.includes('/lib/node_modules/')
-        ? symlinkTarget
-        : null;
+    let npmPathToCheck = null;
+    if (realPath.includes('/lib/node_modules/')) {
+      npmPathToCheck = realPath;
+    } else if (symlinkTarget && symlinkTarget.includes('/lib/node_modules/')) {
+      npmPathToCheck = symlinkTarget;
+    }
 
     if (npmPathToCheck) {
       const match = npmPathToCheck.match(/\/lib\/node_modules\/([^/]+)/);

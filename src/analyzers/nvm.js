@@ -5,6 +5,39 @@
 import fs from 'fs';
 import { exec } from '../utils.js';
 
+const MANAGER_CONFIGS = {
+  nvm: {
+    type: 'nvm (Node Version Manager)',
+    install: 'nvm install <version>',
+    reinstall: 'nvm reinstall-packages <version>',
+    uninstall: 'nvm uninstall <version>',
+    update: 'nvm install --lts or nvm install <version>',
+    info: 'nvm ls'
+  },
+  fnm: {
+    type: 'fnm (Fast Node Manager)',
+    install: 'fnm install <version>',
+    reinstall: 'fnm use <version> && npm install -g <package>',
+    uninstall: 'fnm uninstall <version>',
+    update: 'fnm install --latest',
+    info: 'fnm list'
+  },
+  volta: {
+    type: 'Volta',
+    install: 'volta install node@<version>',
+    reinstall: 'volta install node@<version>',
+    uninstall: 'volta uninstall node@<version>',
+    update: 'volta install node@latest',
+    info: 'volta list'
+  }
+};
+
+const PATH_PATTERNS = [
+  { manager: 'nvm', patterns: ['/.nvm/', '/.nvmrc', '.nvm/'] },
+  { manager: 'fnm', patterns: ['/.fnm/', '.fnm/'] },
+  { manager: 'volta', patterns: ['/.volta/', 'volta/'] }
+];
+
 /**
  * Check if a command is installed via a Node.js version manager
  * @param {string} name - Command name
@@ -12,127 +45,69 @@ import { exec } from '../utils.js';
  * @returns {Object|null} - Analysis result or null
  */
 export function checkNvm(name, cmdPath) {
-  // Only check for node, npm, npx, corepack
   const nodeCommands = ['node', 'npm', 'npx', 'corepack'];
   if (!nodeCommands.includes(name)) return null;
 
-  // Check for nvm path pattern
-  const nvmPatterns = ['/.nvm/', '/.nvmrc', '.nvm/'];
-
-  const fnmPatterns = ['/.fnm/', '.fnm/'];
-
-  const voltaPatterns = ['/.volta/', 'volta/'];
-
-  const isNvm = nvmPatterns.some(p => cmdPath.includes(p));
-  const isFnm = fnmPatterns.some(p => cmdPath.includes(p));
-  const isVolta = voltaPatterns.some(p => cmdPath.includes(p));
-
-  if (isNvm) {
-    return {
-      type: 'nvm (Node Version Manager)',
-      name: name,
-      path: cmdPath,
-      install: 'nvm install <version>',
-      reinstall: 'nvm reinstall-packages <version>',
-      uninstall: 'nvm uninstall <version>',
-      update: 'nvm install --lts or nvm install <version>',
-      info: 'nvm ls'
-    };
+  // Check path patterns for known version managers
+  for (const { manager, patterns } of PATH_PATTERNS) {
+    if (patterns.some(p => cmdPath.includes(p))) {
+      return buildResult(name, cmdPath, manager);
+    }
   }
 
-  if (isFnm) {
-    return {
-      type: 'fnm (Fast Node Manager)',
-      name: name,
-      path: cmdPath,
-      install: 'fnm install <version>',
-      reinstall: 'fnm use <version> && npm install -g <package>',
-      uninstall: 'fnm uninstall <version>',
-      update: 'fnm install --latest',
-      info: 'fnm list'
-    };
-  }
-
-  if (isVolta) {
-    return {
-      type: 'Volta',
-      name: name,
-      path: cmdPath,
-      install: 'volta install node@<version>',
-      reinstall: 'volta install node@<version>',
-      uninstall: 'volta uninstall node@<version>',
-      update: 'volta install node@latest',
-      info: 'volta list'
-    };
-  }
-
-  // Check if fnm or nvm is the active version manager
+  // Check if a version manager is active via environment variables
   const activeManager = detectActiveManager();
   if (activeManager) {
-    return {
-      type: activeManager.type,
-      name: name,
-      path: cmdPath,
-      install: activeManager.install,
-      reinstall: activeManager.reinstall,
-      uninstall: activeManager.uninstall,
-      update: activeManager.update,
-      info: activeManager.info
-    };
+    return buildResult(name, cmdPath, activeManager);
   }
 
   return null;
 }
 
 /**
+ * Build a result object for a given version manager
+ * @param {string} name - Command name
+ * @param {string} cmdPath - Full path to the command
+ * @param {string} manager - Manager key (nvm, fnm, volta)
+ * @returns {Object} - Analysis result
+ */
+function buildResult(name, cmdPath, manager) {
+  const config = MANAGER_CONFIGS[manager];
+  return {
+    ...config,
+    name: name,
+    path: cmdPath
+  };
+}
+
+/**
  * Detect which version manager is currently active
- * @returns {Object|null} - Manager info or null
+ * @returns {string|null} - Manager key or null
  */
 function detectActiveManager() {
-  // Check NVM_DIR environment
-  const nvmDir = process.env.NVM_DIR;
-  if (nvmDir && fs.existsSync(nvmDir)) {
-    const currentVersion = exec('nvm --version 2>/dev/null');
-    if (currentVersion) {
-      return {
-        type: 'nvm (Node Version Manager)',
-        install: 'nvm install <version>',
-        reinstall: 'nvm reinstall-packages <version>',
-        uninstall: 'nvm uninstall <version>',
-        update: 'nvm install --lts',
-        info: 'nvm ls'
-      };
-    }
+  if (isManagerActive('NVM_DIR', 'nvm --version 2>/dev/null')) {
+    return 'nvm';
   }
 
-  // Check FNM_DIR environment
-  const fnmDir = process.env.FNM_DIR;
-  if (fnmDir && fs.existsSync(fnmDir)) {
-    const currentVersion = exec('fnm --version 2>/dev/null');
-    if (currentVersion) {
-      return {
-        type: 'fnm (Fast Node Manager)',
-        install: 'fnm install <version>',
-        reinstall: 'fnm use <version> && npm install -g <package>',
-        uninstall: 'fnm uninstall <version>',
-        update: 'fnm install --latest',
-        info: 'fnm list'
-      };
-    }
+  if (isManagerActive('FNM_DIR', 'fnm --version 2>/dev/null')) {
+    return 'fnm';
   }
 
-  // Check VOLTA_HOME environment
   const voltaHome = process.env.VOLTA_HOME;
   if (voltaHome && fs.existsSync(voltaHome)) {
-    return {
-      type: 'Volta',
-      install: 'volta install node@<version>',
-      reinstall: 'volta install node@<version>',
-      uninstall: 'volta uninstall node@<version>',
-      update: 'volta install node@latest',
-      info: 'volta list'
-    };
+    return 'volta';
   }
 
   return null;
+}
+
+/**
+ * Check if a version manager is active by its env var and version command
+ * @param {string} envVar - Environment variable name
+ * @param {string} versionCmd - Command to check if the manager is available
+ * @returns {boolean}
+ */
+function isManagerActive(envVar, versionCmd) {
+  const dir = process.env[envVar];
+  return dir && fs.existsSync(dir) && exec(versionCmd) !== null;
 }

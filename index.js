@@ -45,7 +45,6 @@ ${colors.cyan('Supported package managers:')}
   • Go modules
   • pip (Python)
   • nvm/fnm/volta (Node.js version managers)
-  • Bun
   • System packages (apt, pacman, dnf, pkgutil)
 
 ${colors.cyan('Shim detection:')}
@@ -78,26 +77,23 @@ ${colors.cyan('Shim detection:')}
  */
 function main() {
   const { input, flags } = cli;
+  const { json, verbose } = flags;
 
   if (input.length === 0) {
     cli.showHelp();
   }
 
-  const jsonOutput = flags.json;
-  const verbose = flags.verbose;
-  const commands = input;
+  let foundCount = 0;
 
-  const results = [];
-
-  for (const cmd of commands) {
-    if (!jsonOutput) {
+  for (const cmd of input) {
+    if (!json) {
       printAnalyzing(cmd);
     }
 
     const result = analyzeCommand(cmd, verbose);
 
     if (!result) {
-      if (jsonOutput) {
+      if (json) {
         printNotFoundJson(cmd);
       } else {
         printNotFound(cmd);
@@ -105,17 +101,16 @@ function main() {
       continue;
     }
 
-    if (jsonOutput) {
+    if (json) {
       printReportJson(result, verbose);
     } else {
       printReport(result, verbose);
     }
 
-    results.push(result);
+    foundCount++;
   }
 
-  // Exit with error code if no results in JSON mode
-  if (jsonOutput && results.length === 0) {
+  if (json && foundCount === 0) {
     process.exit(1);
   }
 }

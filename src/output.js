@@ -44,7 +44,6 @@ ${colors.bold('📦 Management Commands:')}
 function printVerboseDetails(result) {
   const lines = [`${colors.bold('🔬 Verbose Details:')}`];
 
-  // Shim details
   if (result.shimDetails) {
     lines.push(`  ${colors.cyan('Shim Manager:')} ${result.shimDetails.manager}`);
     lines.push(`  ${colors.cyan('Actual Manager:')} ${result.shimDetails.actualManager}`);
@@ -54,27 +53,20 @@ function printVerboseDetails(result) {
     if (result.shimDetails.version) {
       lines.push(`  ${colors.cyan('Version:')} ${result.shimDetails.version}`);
     }
-    if (result.shimDetails.actualManager) {
-      lines.push(`  ${colors.cyan('Actual Package:')} ${result.shimDetails.actualManager}`);
-    }
   }
 
-  // Real path (for symlinks)
   if (result.realPath && result.realPath !== result.path) {
     lines.push(`  ${colors.cyan('Real Path:')} ${result.realPath}`);
   }
 
-  // File type
   if (result.fileType) {
     lines.push(`  ${colors.cyan('File Type:')} ${result.fileType}`);
   }
 
-  // Target info
   if (result.target) {
     lines.push(`  ${colors.cyan('Interpreter:')} ${result.target}`);
   }
 
-  // File size
   if (result.fileSize) {
     lines.push(`  ${colors.cyan('File Size:')} ${formatFileSize(result.fileSize)}`);
   }
@@ -105,12 +97,12 @@ function formatFileSize(bytes) {
 export function printReportJson(result, verbose = false) {
   if (verbose) {
     console.log(JSON.stringify(result, null, 2));
-  } else {
-    // Remove verbose-only fields for non-verbose JSON
-    // eslint-disable-next-line no-unused-vars
-    const { shimDetails, realPath, fileType, target, fileSize, ...basic } = result;
-    console.log(JSON.stringify(basic, null, 2));
+    return;
   }
+
+  const verboseKeys = new Set(['shimDetails', 'realPath', 'fileType', 'target', 'fileSize']);
+  const basic = Object.fromEntries(Object.entries(result).filter(([key]) => !verboseKeys.has(key)));
+  console.log(JSON.stringify(basic, null, 2));
 }
 
 /**
