@@ -123,7 +123,7 @@ export function printReportPorcelain(result, verbose = false) {
     `install=${result.install || ''}`,
     `uninstall=${result.uninstall || ''}`,
     `update=${result.update || ''}`,
-    `info=${result.info || ''}`,
+    `info=${result.info || ''}`
   ];
 
   if (result.reason) {
@@ -190,7 +190,7 @@ ${colors.yellow('Hint: The command might not be installed or might not be in you
  * @param {string} cmd - Command name
  */
 export function printNotFoundPorcelain(cmd) {
-  console.log(`error=not_found`);
+  console.log('error=not_found');
   console.log(`command=${cmd}`);
   console.log(`message=Command '${cmd}' not found in PATH`);
 }
