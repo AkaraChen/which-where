@@ -39,6 +39,7 @@ ${colors.cyan('Supported package managers:')}
   • npm (Node.js)
   • yarn (Node.js)
   • pnpm (Node.js)
+  • Bun
   • Cargo (Rust)
   • Go modules
   • pip (Python)

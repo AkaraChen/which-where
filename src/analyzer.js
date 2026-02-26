@@ -20,6 +20,7 @@ export function analyzeCommand(name) {
   // Run analyzers in order - version managers first, then package managers
   const analyzerOrder = [
     analyzers.checkNvm, // Node.js version managers (nvm, fnm, volta)
+    analyzers.checkBun, // Bun package manager
     analyzers.checkBrew, // Homebrew (checked early for macOS)
     analyzers.checkCargo, // Rust/Cargo
     analyzers.checkGo, // Go modules

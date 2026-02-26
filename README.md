@@ -6,7 +6,7 @@ A CLI tool that tells you which package manager installed a command and provides
 
 ## Features
 
-- 🔍 **Detect Package Source** - Identifies if a command was installed via Homebrew, npm, yarn, pnpm, Cargo, Go, pip, nvm, or system packages
+- 🔍 **Detect Package Source** - Identifies if a command was installed via Homebrew, npm, yarn, pnpm, Cargo, Go, pip, nvm, bun, or system packages
 - 📦 **Management Commands** - Provides ready-to-use commands for installing, uninstalling, updating, and getting info about packages
 - 🎨 **Clean Output** - Color-coded, easy-to-read reports with JSON support
 - 🧪 **Well Tested** - Unit tests covering all analyzers
@@ -24,6 +24,7 @@ A CLI tool that tells you which package manager installed a command and provides
 | Go modules                               | ✅        |
 | pip (Python)                             | ✅        |
 | nvm/fnm/volta (Node.js version managers) | ✅        |
+| Bun                                      | ✅        |
 | System (apt, pacman, dnf, pkgutil)       | ✅        |
 
 ## Installation

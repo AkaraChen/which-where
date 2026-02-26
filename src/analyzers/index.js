@@ -3,6 +3,7 @@
  */
 
 export { checkBrew } from './brew.js';
+export { checkBun } from './bun.js';
 export { checkCargo } from './cargo.js';
 export { checkGo } from './go.js';
 export { checkNpm } from './npm.js';
