@@ -96,7 +96,8 @@ function buildFnmResult(name, shimPath, realPath) {
       manager: 'fnm',
       version: version,
       actualManager: actualManager
-    }
+    },
+    reason: `fnm shim pointing to ${actualManager} managed package`
   };
 }
 
@@ -127,7 +128,8 @@ function checkNvmShim(name, cmdPath) {
       manager: 'nvm',
       version: version,
       actualManager: 'npm (Node.js)'
-    }
+    },
+    reason: `nvm wrapper for npm managed package (version: ${version})`
   };
 }
 
@@ -151,7 +153,8 @@ function checkVoltaShim(name, cmdPath) {
       manager: 'volta',
       version: 'pinned',
       actualManager: 'Volta'
-    }
+    },
+    reason: 'Volta shim for managed package'
   };
 }
 
@@ -259,7 +262,8 @@ function checkSimpleShim(name, cmdPath) {
         manager: shim.manager,
         version: shim.version,
         actualManager: shim.actualManager
-      }
+      },
+      reason: `${shim.type} for ${shim.actualManager} managed package`
     };
   }
 

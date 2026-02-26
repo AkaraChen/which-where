@@ -28,7 +28,8 @@ export function checkSystem(name, cmdPath) {
         install: 'System installation or reinstall via macOS installer',
         uninstall: `pkgutil --only-package --forget ${packageName}`,
         update: 'macOS system update',
-        info: `pkgutil --pkg-info ${packageName}`
+        info: `pkgutil --pkg-info ${packageName}`,
+        reason: 'Found via macOS pkgutil'
       };
     }
   }
@@ -45,7 +46,8 @@ export function checkSystem(name, cmdPath) {
         install: `sudo apt install ${packageName}`,
         uninstall: `sudo apt remove ${packageName}`,
         update: `sudo apt update && sudo apt install --only-upgrade ${packageName}`,
-        info: `apt show ${packageName}`
+        info: `apt show ${packageName}`,
+        reason: 'Found via apt/dpkg package manager'
       };
     }
   }
@@ -62,7 +64,8 @@ export function checkSystem(name, cmdPath) {
         install: `sudo pacman -S ${packageName}`,
         uninstall: `sudo pacman -R ${packageName}`,
         update: `sudo pacman -Syu ${packageName}`,
-        info: `pacman -Si ${packageName}`
+        info: `pacman -Si ${packageName}`,
+        reason: 'Found via pacman package manager'
       };
     }
   }
@@ -81,7 +84,8 @@ export function checkSystem(name, cmdPath) {
           install: `sudo dnf install ${packageName}`,
           uninstall: `sudo dnf remove ${packageName}`,
           update: `sudo dnf upgrade ${packageName}`,
-          info: `dnf info ${packageName}`
+          info: `dnf info ${packageName}`,
+          reason: 'Found via dnf/rpm package manager'
         };
       }
     }

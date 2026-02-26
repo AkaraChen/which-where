@@ -46,7 +46,8 @@ export function checkNpm(name, cmdPath) {
     install: `npm install -g ${packageName}`,
     uninstall: `npm uninstall -g ${packageName}`,
     update: `npm update -g ${packageName}`,
-    info: `npm view ${packageName}`
+    info: `npm view ${packageName}`,
+    reason: 'Found in npm global paths (node_modules)'
   };
 }
 
@@ -103,7 +104,8 @@ export function checkBrewNpm(name, cmdPath) {
           reinstall: `${brewNpm} install -g --force ${packageName}`,
           uninstall: `${brewNpm} uninstall -g ${packageName}`,
           update: `${brewNpm} update -g ${packageName}`,
-          info: `${brewNpm} ls -g ${packageName}`
+          info: `${brewNpm} ls -g ${packageName}`,
+          reason: `Found in Homebrew's node_modules (${prefix})`
         };
       }
     }

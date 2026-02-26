@@ -76,7 +76,8 @@ function buildResult(name, cmdPath, manager) {
   return {
     ...config,
     name: name,
-    path: cmdPath
+    path: cmdPath,
+    reason: `Node.js binary managed by ${manager}`
   };
 }
 

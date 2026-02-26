@@ -41,7 +41,8 @@ export function checkPip(name, cmdPath) {
     reinstall: `pip install --force-reinstall ${packageName}`,
     uninstall: `pip uninstall ${packageName}`,
     update: `pip install --upgrade ${packageName}`,
-    info: `pip show ${packageName}`
+    info: `pip show ${packageName}`,
+    reason: 'Found in Python site-packages directory'
   };
 }
 

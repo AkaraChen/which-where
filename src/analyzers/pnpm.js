@@ -27,6 +27,7 @@ export function checkPnpm(name, cmdPath) {
     install: `pnpm add -g ${name}`,
     uninstall: `pnpm remove -g ${name}`,
     update: `pnpm update -g ${name}`,
-    info: `pnpm info ${name}`
+    info: `pnpm info ${name}`,
+    reason: 'Found in pnpm global store directory'
   };
 }

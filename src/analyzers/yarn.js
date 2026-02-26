@@ -27,6 +27,7 @@ export function checkYarn(name, cmdPath) {
     install: `yarn global add ${name}`,
     uninstall: `yarn global remove ${name}`,
     update: 'yarn global upgrade',
-    info: `yarn info ${name}`
+    info: `yarn info ${name}`,
+    reason: 'Found in Yarn global directory'
   };
 }

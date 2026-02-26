@@ -39,6 +39,7 @@ export function checkBun(name, cmdPath) {
     install: `bun add -g ${packageName}`,
     uninstall: `bun remove -g ${packageName}`,
     update: `bun update -g ${packageName}`,
-    info: 'bun pm ls -g'
+    info: 'bun pm ls -g',
+    reason: 'Found in Bun bin directory'
   };
 }
