@@ -13,7 +13,6 @@ import path from 'path';
 export function checkPnpm(name, cmdPath) {
   const home = process.env.HOME || '/home/user';
   const pnpmPaths = [
-    path.join(home, '.local', 'bin'),
     path.join(home, '.pnpm-store'),
     path.join(home, 'Library', 'pnpm')
   ];
