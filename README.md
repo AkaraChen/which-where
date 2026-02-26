@@ -6,10 +6,11 @@ A CLI tool that tells you which package manager installed a command and provides
 
 ## Features
 
-- 🔍 **Detect Package Source** - Identifies if a command was installed via Homebrew, npm, yarn, pnpm, Cargo, Go, or system packages
+- 🔍 **Detect Package Source** - Identifies if a command was installed via Homebrew, npm, yarn, pnpm, Cargo, Go, pip, nvm, or system packages
 - 📦 **Management Commands** - Provides ready-to-use commands for installing, uninstalling, updating, and getting info about packages
-- 🎨 **Clean Output** - Color-coded, easy-to-read reports
-- 🧪 **Well Tested** - 38 unit tests covering all analyzers
+- 🎨 **Clean Output** - Color-coded, easy-to-read reports with JSON support
+- 🧪 **Well Tested** - Unit tests covering all analyzers
+- 🚀 **CI/CD Ready** - GitHub Actions configured for automated testing
 
 ## Supported Package Managers
 
@@ -21,13 +22,15 @@ A CLI tool that tells you which package manager installed a command and provides
 | pnpm (Node.js) | ✅ |
 | Cargo (Rust) | ✅ |
 | Go modules | ✅ |
+| pip (Python) | ✅ |
+| nvm/fnm/volta (Node.js version managers) | ✅ |
 | System (apt, pacman, dnf, pkgutil) | ✅ |
 
 ## Installation
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/which-where.git
+git clone https://github.com/akrc/which-where.git
 cd which-where
 
 # Install dependencies
@@ -42,6 +45,9 @@ node index.js node
 
 # Analyze multiple commands
 node index.js node npm git
+
+# Output as JSON (for script integration)
+node index.js --json node
 
 # Show help
 node index.js
@@ -66,10 +72,42 @@ $ node index.js node
   Info:       brew info node
 ```
 
+### JSON Output
+
+```bash
+$ node index.js --json node
+
+{
+  "type": "Homebrew",
+  "name": "node",
+  "path": "/opt/homebrew/bin/node",
+  "install": "brew install node",
+  "uninstall": "brew uninstall node",
+  "update": "brew upgrade node",
+  "info": "brew info node"
+}
+```
+
 ## Running Tests
 
 ```bash
 npm test
+```
+
+## Development
+
+```bash
+# Run linter
+npm run lint
+
+# Fix linting issues
+npm run lint:fix
+
+# Format code
+npm run format
+
+# Check formatting
+npm run format:check
 ```
 
 ## Project Structure
@@ -88,8 +126,10 @@ which-where/
 │       ├── pnpm.js          # pnpm
 │       ├── cargo.js         # Cargo/Rust
 │       ├── go.js            # Go
+│       ├── pip.js           # Python pip
+│       ├── nvm.js           # nvm/fnm/volta
 │       └── system.js        # System packages
-└── test/                    # Unit tests (*.test.js files alongside source)
+└── src/**/*.test.js         # Unit tests
 ```
 
 ## API
@@ -113,6 +153,31 @@ console.log(result);
 //   info: 'brew info node'
 // }
 ```
+
+## Analyzer Return Format
+
+Each analyzer returns an object with the following structure:
+
+```typescript
+{
+  type: string;        // Package manager name
+  name: string;        // Package name
+  path: string;        // Full path to the command
+  install: string;     // Command to install
+  reinstall: string;   // Command to reinstall
+  uninstall: string;   // Command to uninstall
+  update: string;      // Command to update
+  info: string         // Command to get info
+}
+```
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ## License
 

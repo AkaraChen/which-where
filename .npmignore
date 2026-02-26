@@ -1,0 +1,23 @@
+# Dependencies
+node_modules/
+
+# Development
+.nyc_output/
+coverage/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+
+# Logs
+*.log
+npm-debug.log*
+
+# Test
+tmp/
+temp/

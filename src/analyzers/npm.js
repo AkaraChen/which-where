@@ -2,9 +2,8 @@
  * npm package analyzer
  */
 
-const path = require('path');
-const fs = require('fs');
-const { exec } = require('../utils');
+import path from 'path';
+import fs from 'fs';
 
 /**
  * Check if a command is installed via npm
@@ -12,7 +11,7 @@ const { exec } = require('../utils');
  * @param {string} cmdPath - Full path to the command
  * @returns {Object|null} - Analysis result or null
  */
-function checkNpm(name, cmdPath) {
+export function checkNpm(name, cmdPath) {
   const home = process.env.HOME || '/home/user';
   const npmGlobalPaths = [
     '/usr/local/lib/node_modules',
@@ -36,7 +35,7 @@ function checkNpm(name, cmdPath) {
         packageName = match[1];
       }
     }
-  } catch (e) {
+  } catch {
     // Not a symlink
   }
 
@@ -50,5 +49,3 @@ function checkNpm(name, cmdPath) {
     info: `npm view ${packageName}`
   };
 }
-
-module.exports = { checkNpm };

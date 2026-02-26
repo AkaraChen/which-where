@@ -2,20 +2,12 @@
  * Analyzer index - exports all analyzers
  */
 
-const { checkBrew } = require('./brew');
-const { checkCargo } = require('./cargo');
-const { checkGo } = require('./go');
-const { checkNpm } = require('./npm');
-const { checkYarn } = require('./yarn');
-const { checkPnpm } = require('./pnpm');
-const { checkSystem } = require('./system');
-
-module.exports = {
-  checkBrew,
-  checkCargo,
-  checkGo,
-  checkNpm,
-  checkYarn,
-  checkPnpm,
-  checkSystem
-};
+export { checkBrew } from './brew.js';
+export { checkCargo } from './cargo.js';
+export { checkGo } from './go.js';
+export { checkNpm } from './npm.js';
+export { checkYarn } from './yarn.js';
+export { checkPnpm } from './pnpm.js';
+export { checkPip } from './pip.js';
+export { checkNvm } from './nvm.js';
+export { checkSystem } from './system.js';

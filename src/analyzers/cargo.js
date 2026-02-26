@@ -2,7 +2,7 @@
  * Cargo/Rust package analyzer
  */
 
-const { exec } = require('../utils');
+import { exec } from '../utils.js';
 
 /**
  * Check if a command is installed via Cargo/Rust
@@ -10,7 +10,7 @@ const { exec } = require('../utils');
  * @param {string} cmdPath - Full path to the command
  * @returns {Object|null} - Analysis result or null
  */
-function checkCargo(name, cmdPath) {
+export function checkCargo(name, cmdPath) {
   const home = process.env.HOME || '/home/user';
   const cargoPath = `${home}/.cargo/bin`;
 
@@ -34,7 +34,7 @@ function checkCargo(name, cmdPath) {
 
   // Try to find the crate name from cargo install --list
   let crateName = name;
-  const cargoList = exec(`cargo install --list 2>/dev/null`);
+  const cargoList = exec('cargo install --list 2>/dev/null');
 
   if (cargoList) {
     const lines = cargoList.split('\n');
@@ -65,5 +65,3 @@ function checkCargo(name, cmdPath) {
     info: `cargo search ${crateName}`
   };
 }
-
-module.exports = { checkCargo };

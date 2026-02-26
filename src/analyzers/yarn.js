@@ -2,8 +2,7 @@
  * Yarn package analyzer
  */
 
-const path = require('path');
-const { exec } = require('../utils');
+import path from 'path';
 
 /**
  * Check if a command is installed via Yarn
@@ -11,7 +10,7 @@ const { exec } = require('../utils');
  * @param {string} cmdPath - Full path to the command
  * @returns {Object|null} - Analysis result or null
  */
-function checkYarn(name, cmdPath) {
+export function checkYarn(name, cmdPath) {
   const home = process.env.HOME || '/home/user';
   const yarnPaths = [
     path.join(home, '.yarn'),
@@ -28,9 +27,7 @@ function checkYarn(name, cmdPath) {
     path: cmdPath,
     install: `yarn global add ${name}`,
     uninstall: `yarn global remove ${name}`,
-    update: `yarn global upgrade`,
+    update: 'yarn global upgrade',
     info: `yarn info ${name}`
   };
 }
-
-module.exports = { checkYarn };

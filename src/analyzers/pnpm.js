@@ -2,8 +2,7 @@
  * pnpm package analyzer
  */
 
-const path = require('path');
-const { exec } = require('../utils');
+import path from 'path';
 
 /**
  * Check if a command is installed via pnpm
@@ -11,7 +10,7 @@ const { exec } = require('../utils');
  * @param {string} cmdPath - Full path to the command
  * @returns {Object|null} - Analysis result or null
  */
-function checkPnpm(name, cmdPath) {
+export function checkPnpm(name, cmdPath) {
   const home = process.env.HOME || '/home/user';
   const pnpmPaths = [
     path.join(home, '.local', 'bin'),
@@ -32,5 +31,3 @@ function checkPnpm(name, cmdPath) {
     info: `pnpm info ${name}`
   };
 }
-
-module.exports = { checkPnpm };

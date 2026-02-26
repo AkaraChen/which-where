@@ -2,6 +2,7 @@
   "name": "which-where",
   "version": "1.0.0",
   "description": "Analyze where a command comes from and how to manage it",
+  "type": "module",
   "main": "index.js",
   "bin": {
     "which-where": "./index.js"
@@ -12,18 +13,48 @@
     "homebrew",
     "npm",
     "cargo",
-    "go"
+    "go",
+    "pip",
+    "nvm",
+    "package-manager"
   ],
+  "author": "",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/akrc/which-where.git"
+  },
+  "homepage": "https://github.com/akrc/which-where#readme",
+  "bugs": {
+    "url": "https://github.com/akrc/which-where/issues"
+  },
+  "files": [
+    "index.js",
+    "src/"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "devDependencies": {
-    "ava": "^6.4.1"
+    "ava": "^6.4.1",
+    "eslint": "^9.22.0",
+    "globals": "^16.0.0",
+    "@eslint/js": "^9.22.0",
+    "prettier": "^3.5.3"
   },
   "scripts": {
-    "test": "ava"
+    "test": "ava",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "ava": {
     "files": [
       "src/**/*.test.js"
+    ],
+    "nodeArguments": [
+      "--experimental-vm-modules"
     ]
   },
   "dependencies": {

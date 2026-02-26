@@ -2,7 +2,7 @@
  * System package analyzer
  */
 
-const { exec } = require('../utils');
+import { exec } from '../utils.js';
 
 /**
  * Check if a command is a system command
@@ -10,83 +10,91 @@ const { exec } = require('../utils');
  * @param {string} cmdPath - Full path to the command
  * @returns {Object|null} - Analysis result or null
  */
-function checkSystem(name, cmdPath) {
+export function checkSystem(name, cmdPath) {
   const systemPaths = ['/usr/bin', '/bin', '/usr/sbin', '/sbin'];
 
   const isSystemPath = systemPaths.some(p => cmdPath.startsWith(p));
   if (!isSystemPath) return null;
 
-  let packageManager = 'System';
-  let packageName = 'unknown';
-  let installCmd = `Manual installation`;
-  let uninstallCmd = `sudo rm ${cmdPath}`;
-  let updateCmd = 'System dependent';
-  let infoCmd = `file ${cmdPath}`;
-
-  // macOS: Check for pkgutil
+  // macOS: Check for pkgutil (early return on match)
   if (exec('which pkgutil')) {
     const pkgInfo = exec(`pkgutil -f ${cmdPath} 2>/dev/null`);
     if (pkgInfo) {
-      packageName = pkgInfo.split('\n')[0];
-      packageManager = 'pkgutil (macOS)';
-      installCmd = 'System installation or reinstall via macOS installer';
-      uninstallCmd = `pkgutil --only-package --forget ${packageName}`;
-      updateCmd = 'macOS system update';
-      infoCmd = `pkgutil --pkg-info ${packageName}`;
+      const packageName = pkgInfo.split('\n')[0];
+      return {
+        type: 'pkgutil (macOS)',
+        name: packageName,
+        path: cmdPath,
+        install: 'System installation or reinstall via macOS installer',
+        uninstall: `pkgutil --only-package --forget ${packageName}`,
+        update: 'macOS system update',
+        info: `pkgutil --pkg-info ${packageName}`
+      };
     }
   }
 
-  // Linux: Check for apt/dpkg
+  // Linux: Check for apt/dpkg (early return on match)
   if (exec('which dpkg')) {
     const pkg = exec(`dpkg -S ${cmdPath} 2>/dev/null`);
     if (pkg && !pkg.includes('no path found')) {
-      packageManager = 'apt/dpkg';
-      packageName = pkg.split(':')[0];
-      installCmd = `sudo apt install ${packageName}`;
-      uninstallCmd = `sudo apt remove ${packageName}`;
-      updateCmd = `sudo apt update && sudo apt install --only-upgrade ${packageName}`;
-      infoCmd = `apt show ${packageName}`;
+      const packageName = pkg.split(':')[0];
+      return {
+        type: 'apt/dpkg',
+        name: packageName,
+        path: cmdPath,
+        install: `sudo apt install ${packageName}`,
+        uninstall: `sudo apt remove ${packageName}`,
+        update: `sudo apt update && sudo apt install --only-upgrade ${packageName}`,
+        info: `apt show ${packageName}`
+      };
     }
   }
 
-  // Linux: Check for pacman
+  // Linux: Check for pacman (early return on match)
   if (exec('which pacman')) {
     const pkg = exec(`pacman -Qo ${cmdPath} 2>/dev/null`);
     if (pkg) {
-      packageManager = 'pacman';
-      packageName = pkg.split(' ')[0];
-      installCmd = `sudo pacman -S ${packageName}`;
-      uninstallCmd = `sudo pacman -R ${packageName}`;
-      updateCmd = `sudo pacman -Syu ${packageName}`;
-      infoCmd = `pacman -Si ${packageName}`;
+      const packageName = pkg.split(' ')[0];
+      return {
+        type: 'pacman',
+        name: packageName,
+        path: cmdPath,
+        install: `sudo pacman -S ${packageName}`,
+        uninstall: `sudo pacman -R ${packageName}`,
+        update: `sudo pacman -Syu ${packageName}`,
+        info: `pacman -Si ${packageName}`
+      };
     }
   }
 
-  // Linux: Check for dnf/rpm
+  // Linux: Check for dnf/rpm (early return on match)
   if (exec('which dnf')) {
-    const pkg = exec(`dnf provides ${cmdPath} 2>/dev/null`);
+    const pkg = exec(`dnf provide ${cmdPath} 2>/dev/null`);
     if (pkg) {
       const match = pkg.match(/^(.*?)\s+:/);
       if (match) {
-        packageManager = 'dnf/rpm';
-        packageName = match[1];
-        installCmd = `sudo dnf install ${packageName}`;
-        uninstallCmd = `sudo dnf remove ${packageName}`;
-        updateCmd = `sudo dnf upgrade ${packageName}`;
-        infoCmd = `dnf info ${packageName}`;
+        const packageName = match[1];
+        return {
+          type: 'dnf/rpm',
+          name: packageName,
+          path: cmdPath,
+          install: `sudo dnf install ${packageName}`,
+          uninstall: `sudo dnf remove ${packageName}`,
+          update: `sudo dnf upgrade ${packageName}`,
+          info: `dnf info ${packageName}`
+        };
       }
     }
   }
 
+  // Fallback for system commands without package manager info
   return {
-    type: packageManager,
-    name: packageName,
+    type: 'System',
+    name: name,
     path: cmdPath,
-    install: installCmd,
-    uninstall: uninstallCmd,
-    update: updateCmd,
-    info: infoCmd
+    install: 'Manual installation or system package',
+    uninstall: `sudo rm ${cmdPath}`,
+    update: 'System dependent',
+    info: `file ${cmdPath}`
   };
 }
-
-module.exports = { checkSystem };

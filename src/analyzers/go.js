@@ -2,8 +2,7 @@
  * Go package analyzer
  */
 
-const path = require('path');
-const { exec } = require('../utils');
+import path from 'path';
 
 /**
  * Check if a command is installed via Go
@@ -11,7 +10,7 @@ const { exec } = require('../utils');
  * @param {string} cmdPath - Full path to the command
  * @returns {Object|null} - Analysis result or null
  */
-function checkGo(name, cmdPath) {
+export function checkGo(name, cmdPath) {
   const home = process.env.HOME || '/home/user';
   const goPaths = [
     path.join(process.env.GOPATH || '', 'bin'),
@@ -33,5 +32,3 @@ function checkGo(name, cmdPath) {
     info: `go doc ${name}`
   };
 }
-
-module.exports = { checkGo };

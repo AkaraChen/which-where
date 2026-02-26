@@ -2,9 +2,8 @@
  * Homebrew package analyzer
  */
 
-const fs = require('fs');
-const path = require('path');
-const { exec, getBrewPrefix } = require('../utils');
+import fs from 'fs';
+import { exec, getBrewPrefix } from '../utils.js';
 
 /**
  * Check if a command is installed via Homebrew
@@ -12,7 +11,7 @@ const { exec, getBrewPrefix } = require('../utils');
  * @param {string} cmdPath - Full path to the command
  * @returns {Object|null} - Analysis result or null
  */
-function checkBrew(name, cmdPath) {
+export function checkBrew(name, cmdPath) {
   const brewPrefix = getBrewPrefix();
   if (!brewPrefix) return null;
 
@@ -53,7 +52,7 @@ function checkBrew(name, cmdPath) {
         info: `brew info ${formula}`
       };
     }
-  } catch (e) {
+  } catch {
     // Not a symlink
   }
 
@@ -86,5 +85,3 @@ function checkBrew(name, cmdPath) {
     info: `brew info ${name}`
   };
 }
-
-module.exports = { checkBrew };
