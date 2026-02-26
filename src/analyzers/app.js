@@ -2,6 +2,7 @@
  * macOS App Bundle analyzer
  */
 
+import fs from 'fs';
 import { exec } from '../utils.js';
 
 /**
@@ -11,9 +12,19 @@ import { exec } from '../utils.js';
  * @returns {Object|null} - Analysis result or null
  */
 export function checkApp(name, cmdPath) {
+  // Resolve symlinks to get the real path
+  let realPath = cmdPath;
+  try {
+    if (fs.lstatSync(cmdPath).isSymbolicLink()) {
+      realPath = fs.realpathSync(cmdPath);
+    }
+  } catch {
+    // Cannot stat file, continue with original path
+  }
+
   // Detect macOS app bundle paths like:
   // /Applications/Docker.app/Contents/Resources/bin/docker
-  const appMatch = cmdPath.match(/\/([^/]+)\.app\//);
+  const appMatch = realPath.match(/\/([^/]+)\.app\//);
   if (!appMatch) {
     return null;
   }
@@ -21,8 +32,8 @@ export function checkApp(name, cmdPath) {
   const appBundleName = appMatch[1];
 
   // Try to get the app's display name using macOS native mdls command
-  const appPathEnd = cmdPath.indexOf('.app/') + 5;
-  const appPath = cmdPath.substring(0, appPathEnd);
+  const appPathEnd = realPath.indexOf('.app/') + 5;
+  const appPath = realPath.substring(0, appPathEnd);
   let displayName = appBundleName;
 
   try {
@@ -39,6 +50,7 @@ export function checkApp(name, cmdPath) {
     type: 'macOS App Bundle',
     name: name,
     path: cmdPath,
+    realPath: realPath,
     appBundle: displayName,
     install: `Copy .app to /Applications/`,
     reinstall: 'Reinstall the application',
