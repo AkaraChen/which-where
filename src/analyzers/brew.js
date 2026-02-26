@@ -16,17 +16,16 @@ export function checkBrew(name, cmdPath) {
   if (!brewPrefix) return null;
   if (!cmdPath.startsWith(brewPrefix)) return null;
 
-  return getBrewInfo(name, cmdPath, brewPrefix);
+  return getBrewInfo(cmdPath, brewPrefix);
 }
 
 /**
  * Get brew info for a formula or cask
- * @param {string} name - Command name
  * @param {string} cmdPath - Full path to the command
  * @param {string} brewPrefix - Homebrew prefix
  * @returns {Object|null} - Analysis result or null
  */
-function getBrewInfo(name, cmdPath, brewPrefix) {
+function getBrewInfo(cmdPath, brewPrefix) {
   const { realPath, symlinkTarget } = resolveSymlink(cmdPath);
 
   // Check for Cellar path (formula)
@@ -122,7 +121,7 @@ function buildCaskResult(caskName, cmdPath) {
  * @returns {string|null} - Tap name or null
  */
 function getTapInfo(formula) {
-  const output = exec(`brew info --json=v2 --formula ${formula} 2>/dev/null`);
+  const output = exec('brew', ['info', '--json=v2', '--formula', formula]);
   if (!output) return null;
 
   try {

@@ -2,7 +2,7 @@
  * Go package analyzer
  */
 
-import { execSync } from 'child_process';
+import { exec } from '../utils.js';
 import path from 'path';
 
 /**
@@ -46,7 +46,7 @@ export function checkGo(name, cmdPath) {
   // Try to get module info from go version -m
   let moduleInfo = null;
   try {
-    const output = execSync(`go version -m "${cmdPath}"`, { encoding: 'utf-8' });
+    const output = exec('go', ['version', '-m', cmdPath]);
     if (output) {
       moduleInfo = extractModuleInfo(output);
     }

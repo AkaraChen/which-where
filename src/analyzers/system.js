@@ -17,8 +17,8 @@ export function checkSystem(name, cmdPath) {
   if (!isSystemPath) return null;
 
   // macOS: pkgutil
-  if (exec('which pkgutil')) {
-    const pkgInfo = exec(`pkgutil -f ${cmdPath} 2>/dev/null`);
+  if (exec('which', ['pkgutil'])) {
+    const pkgInfo = exec('pkgutil', ['-f', cmdPath]);
     if (pkgInfo) {
       const packageName = pkgInfo.split('\n')[0];
       return {
@@ -35,8 +35,8 @@ export function checkSystem(name, cmdPath) {
   }
 
   // Linux: apt/dpkg
-  if (exec('which dpkg')) {
-    const pkg = exec(`dpkg -S ${cmdPath} 2>/dev/null`);
+  if (exec('which', ['dpkg'])) {
+    const pkg = exec('dpkg', ['-S', cmdPath]);
     if (pkg && !pkg.includes('no path found')) {
       const packageName = pkg.split(':')[0];
       return {
@@ -53,8 +53,8 @@ export function checkSystem(name, cmdPath) {
   }
 
   // Linux: pacman
-  if (exec('which pacman')) {
-    const pkg = exec(`pacman -Qo ${cmdPath} 2>/dev/null`);
+  if (exec('which', ['pacman'])) {
+    const pkg = exec('pacman', ['-Qo', cmdPath]);
     if (pkg) {
       const packageName = pkg.split(' ')[0];
       return {
@@ -71,8 +71,8 @@ export function checkSystem(name, cmdPath) {
   }
 
   // Linux: dnf/rpm
-  if (exec('which dnf')) {
-    const pkg = exec(`dnf provide ${cmdPath} 2>/dev/null`);
+  if (exec('which', ['dnf'])) {
+    const pkg = exec('dnf', ['provide', cmdPath]);
     if (pkg) {
       const match = pkg.match(/^(.*?)\s+:/);
       if (match) {

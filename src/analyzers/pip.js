@@ -28,7 +28,11 @@ export function checkPip(name, cmdPath) {
 
   const isPythonPath =
     cmdPath.includes('site-packages') ||
-    cmdPath.includes('/bin/') && (cmdPath.includes('.venv') || cmdPath.includes('virtualenv') || cmdPath.includes('/test-venv/') || cmdPath.includes('venv/bin/')) ||
+    (cmdPath.includes('/bin/') &&
+      (cmdPath.includes('.venv') ||
+        cmdPath.includes('virtualenv') ||
+        cmdPath.includes('/test-venv/') ||
+        cmdPath.includes('venv/bin/'))) ||
     cmdPath.includes('.pyenv') ||
     cmdPath.includes('pipx/venvs') ||
     realPath.includes('pipx/venvs') ||
@@ -37,7 +41,11 @@ export function checkPip(name, cmdPath) {
   if (!isPythonPath) return null;
 
   const isPipx = cmdPath.includes('pipx/venvs') || realPath.includes('pipx/venvs');
-  const isVenv = cmdPath.includes('.venv') || cmdPath.includes('virtualenv') || cmdPath.includes('/test-venv/') || cmdPath.includes('venv/bin/');
+  const isVenv =
+    cmdPath.includes('.venv') ||
+    cmdPath.includes('virtualenv') ||
+    cmdPath.includes('/test-venv/') ||
+    cmdPath.includes('venv/bin/');
 
   let packageName;
   if (isPipx) {
@@ -51,14 +59,12 @@ export function checkPip(name, cmdPath) {
   let verified;
   if (isPipx) {
     const pipxPython = realPath.replace(/\/bin\/[^/]+$/, '/bin/python');
-    verified = exec(`${pipxPython} -m pip show ${packageName} 2>/dev/null`);
+    verified = exec(pipxPython, ['-m', 'pip', 'show', packageName]);
   } else if (isVenv) {
     const venvPip = cmdPath.replace(/\/bin\/[^/]+$/, '/bin/pip');
-    verified = exec(`${venvPip} show ${packageName} 2>/dev/null`);
+    verified = exec(venvPip, ['show', packageName]);
   } else {
-    verified =
-      exec(`${pipCmd} show ${packageName} 2>/dev/null`) ||
-      exec(`pip show ${packageName} 2>/dev/null`);
+    verified = exec(pipCmd, ['show', packageName]) || exec('pip', ['show', packageName]);
   }
 
   if (!verified) return null;
@@ -92,8 +98,8 @@ export function checkPip(name, cmdPath) {
  * @returns {string|null} - pip command name or null
  */
 function findPipCommand() {
-  if (exec('which pip3 2>/dev/null')) return 'pip3';
-  if (exec('which pip 2>/dev/null')) return 'pip';
+  if (exec('which', ['pip3'])) return 'pip3';
+  if (exec('which', ['pip'])) return 'pip';
   return null;
 }
 
@@ -108,10 +114,9 @@ function resolvePackageName(name, pipCmd, venvPath = null) {
   let directShow;
   if (venvPath) {
     const venvPip = venvPath.replace(/\/bin\/[^/]+$/, '/bin/pip');
-    directShow = exec(`${venvPip} show ${name} 2>/dev/null`);
+    directShow = exec(venvPip, ['show', name]);
   } else {
-    directShow =
-      exec(`${pipCmd} show ${name} 2>/dev/null`) || exec(`pip show ${name} 2>/dev/null`);
+    directShow = exec(pipCmd, ['show', name]) || exec('pip', ['show', name]);
   }
   if (directShow) return name;
 
@@ -127,8 +132,8 @@ function resolvePackageName(name, pipCmd, venvPath = null) {
  */
 function findPackageByEntryPoint(name, pipCmd, venvPath = null) {
   const pipVersion = venvPath
-    ? exec(`${venvPath.replace(/\/bin\/[^/]+$/, '/bin/pip')} --version 2>/dev/null`)
-    : (exec(`${pipCmd} --version 2>/dev/null`) || exec('pip --version 2>/dev/null'));
+    ? exec(venvPath.replace(/\/bin\/[^/]+$/, '/bin/pip'), ['--version'])
+    : exec(pipCmd, ['--version']) || exec('pip', ['--version']);
   if (!pipVersion) return null;
 
   const match = pipVersion.match(/from (.+?) \(/);

@@ -37,10 +37,12 @@ export function checkApp(name, cmdPath) {
   let displayName = appBundleName;
 
   try {
-    const mdlsResult = exec(`mdls -name kMDItemDisplayName "${appPath}" 2>/dev/null | cut -d'=' -f2 | tr -d '"'`);
+    const mdlsResult = exec('mdls', ['-name', 'kMDItemDisplayName', appPath]);
     // Only use result if it's not an error message and not empty
     if (mdlsResult && mdlsResult.trim() && !mdlsResult.includes('could not find')) {
-      displayName = mdlsResult.trim();
+      // Parse the output: "kMDItemDisplayName = "Docker"" -> "Docker"
+      const match = mdlsResult.match(/=\s*"?(.+?)"?\s*$/);
+      displayName = match ? match[1].replace(/"$/, '') : mdlsResult.trim();
     }
   } catch {
     // Fallback to bundle name if mdls fails
@@ -52,7 +54,7 @@ export function checkApp(name, cmdPath) {
     path: cmdPath,
     realPath: realPath,
     appBundle: displayName,
-    install: `Copy .app to /Applications/`,
+    install: 'Copy .app to /Applications/',
     reinstall: 'Reinstall the application',
     uninstall: `rm -rf /Applications/${appBundleName}.app`,
     update: 'Check for updates in the app or via App Store',

@@ -15,7 +15,7 @@ import { detectShim } from './analyzers/shim.js';
  * @returns {Object|null} - Analysis result or null
  */
 export function analyzeCommand(name, verbose = false) {
-  const cmdPath = exec(`which ${name}`);
+  const cmdPath = exec('which', [name]);
 
   if (!cmdPath) {
     return null;
