@@ -16,7 +16,10 @@ export function checkNpm(name, cmdPath) {
   const npmGlobalPaths = [
     '/usr/local/lib/node_modules',
     path.join(home, '.nvm'),
-    path.join(home, '.npm-global')
+    path.join(home, '.npm-global'),
+    path.join(home, '.local/state/fnm'),
+    path.join(home, '.fnm'),
+    path.join(home, 'Library/Application Support/fnm')
   ];
 
   const isNpmPath = npmGlobalPaths.some(p => cmdPath.includes(p));
@@ -25,6 +28,7 @@ export function checkNpm(name, cmdPath) {
 
   // Try to find the package name
   let packageName = name;
+  let npmCmd = 'npm';
 
   try {
     const realPath = fs.realpathSync(cmdPath);
@@ -33,19 +37,59 @@ export function checkNpm(name, cmdPath) {
       if (match) {
         packageName = match[1];
       }
+
+      // For fnm paths, try to find the npm binary
+      const fnmMatch = realPath.match(/(.+\/fnm)\/node-versions\/([^/]+)\/installation/);
+      if (fnmMatch) {
+        const fnmBase = fnmMatch[1];
+        const version = fnmMatch[2];
+        const npmPath = path.join(fnmBase, 'node-versions', version, 'installation', 'bin', 'npm');
+        if (fs.existsSync(npmPath)) {
+          npmCmd = npmPath;
+        }
+      }
     }
   } catch {
-    // Cannot resolve symlink
+    // Cannot resolve symlink - check if it's a fnm multishell path
+    const fnmMultiMatch = cmdPath.match(/(.+\/fnm)_[^/]+\//);
+    if (fnmMultiMatch) {
+      const fnmBase = fnmMultiMatch[1];
+      try {
+        // Resolve fnm base directory (could be .local/state/fnm or Library/Application Support/fnm)
+        const versionsDir = path.join(fnmBase, 'node-versions');
+        if (fs.existsSync(versionsDir)) {
+          const versions = fs.readdirSync(versionsDir);
+          if (versions.length > 0) {
+            const npmPath = path.join(fnmBase, 'node-versions', versions[0], 'installation', 'bin', 'npm');
+            if (fs.existsSync(npmPath)) {
+              npmCmd = npmPath;
+            }
+            // Also try to get package name from the real path
+            const realPath = fs.realpathSync(cmdPath);
+            if (realPath.includes('node_modules')) {
+              const match = realPath.match(/node_modules\/(@[^/]+\/[^/]+|[^/]+)/);
+              if (match) {
+                packageName = match[1];
+              }
+            }
+          }
+        }
+      } catch {
+        // Fallback to default npm
+      }
+    }
   }
 
+  const type = npmCmd === 'npm' ? 'npm (Node.js)' : `npm (via fnm)`;
+
   return {
-    type: 'npm (Node.js)',
+    type: type,
     name: packageName,
     path: cmdPath,
-    install: `npm install -g ${packageName}`,
-    uninstall: `npm uninstall -g ${packageName}`,
-    update: `npm update -g ${packageName}`,
-    info: `npm view ${packageName}`,
+    install: `${npmCmd} install -g ${packageName}`,
+    uninstall: `${npmCmd} uninstall -g ${packageName}`,
+    update: `${npmCmd} update -g ${packageName}`,
+    info: `${npmCmd} view ${packageName}`,
     reason: 'Found in npm global paths (node_modules)'
   };
 }

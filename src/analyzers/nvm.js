@@ -35,7 +35,7 @@ const MANAGER_CONFIGS = {
 
 const PATH_PATTERNS = [
   { manager: 'nvm', patterns: ['/.nvm/', '/.nvmrc', '.nvm/'] },
-  { manager: 'fnm', patterns: ['/.fnm/', '.fnm/'] },
+  { manager: 'fnm', patterns: ['/.fnm/', '.fnm/', '/fnm_multishells/'] },
   { manager: 'volta', patterns: ['/.volta/', 'volta/'] }
 ];
 
@@ -68,10 +68,45 @@ export function checkNvm(name, cmdPath) {
 /**
  * Resolve the npm binary path from a managed command's path
  * @param {string} cmdPath - Full path to the command
+ * @param {string} manager - Manager key (nvm, fnm, volta)
  * @returns {string|null} - Path to npm or null if not found
  */
-function resolveNpmPath(cmdPath) {
+function resolveNpmPath(cmdPath, manager) {
   const binDir = path.dirname(cmdPath);
+
+  // For fnm, try to resolve the actual npm path from the node-versions directory
+  if (manager === 'fnm') {
+    // Parse fnm path like: /Users/akrc/.local/state/fnm_multishells/5883_1772116876566/bin/openclaw
+    // or: /Users/test/.fnm/node-versions/v16.0.0/bin/npm
+    const fnmMatch = cmdPath.match(/(.+\/\.local\/state\/fnm)_[^/]+\/(.+)/);
+    const fnmDirect = cmdPath.match(/(.+\/\.fnm)\/node-versions\/([^/]+)\/(.+)/);
+
+    if (fnmMatch) {
+      const fnmBase = fnmMatch[1]; // /Users/akrc/.local/state/fnm
+      // Try to find the node-versions path
+      try {
+        const versionsDir = path.join(fnmBase, 'node-versions');
+        if (fs.existsSync(versionsDir)) {
+          const versions = fs.readdirSync(versionsDir);
+          if (versions.length > 0) {
+            // Use the first (active) version
+            return path.join(versionsDir, versions[0], 'installation', 'bin', 'npm');
+          }
+        }
+      } catch {
+        // Fallback to constructing path
+      }
+      // Construct path from pattern
+      return path.join(fnmBase, 'node-versions', 'current', 'installation', 'bin', 'npm');
+    }
+
+    if (fnmDirect) {
+      // Direct fnm path: construct npm path
+      return path.join(fnmDirect[1], 'node-versions', fnmDirect[2], 'installation', 'bin', 'npm');
+    }
+  }
+
+  // For nvm and volta, or fnm without resolved path, use binDir
   return path.join(binDir, 'npm');
 }
 
@@ -95,18 +130,32 @@ function buildResult(name, cmdPath, manager) {
     };
   }
 
+  // Try to resolve the real path and extract package name
+  let packageName = name;
+  try {
+    const realPath = fs.realpathSync(cmdPath);
+    if (realPath.includes('node_modules')) {
+      const match = realPath.match(/node_modules\/(@[^/]+\/[^/]+|[^/]+)/);
+      if (match) {
+        packageName = match[1];
+      }
+    }
+  } catch {
+    // Cannot resolve symlink, use command name
+  }
+
   // For npm, npx, corepack: resolve npm and return npm-based commands
-  const npmPath = resolveNpmPath(cmdPath);
+  const npmPath = resolveNpmPath(cmdPath, manager);
   if (npmPath) {
     return {
       type: `npm (via ${manager})`,
-      name: name,
+      name: packageName,
       path: cmdPath,
-      install: `${npmPath} install -g ${name}`,
-      reinstall: `${npmPath} install -g --force ${name}`,
-      uninstall: `${npmPath} uninstall -g ${name}`,
-      update: `${npmPath} update -g ${name}`,
-      info: `${npmPath} view ${name}`,
+      install: `${npmPath} install -g ${packageName}`,
+      reinstall: `${npmPath} install -g --force ${packageName}`,
+      uninstall: `${npmPath} uninstall -g ${packageName}`,
+      update: `${npmPath} update -g ${packageName}`,
+      info: `${npmPath} view ${packageName}`,
       reason: `npm-managed package via ${manager}`
     };
   }
@@ -114,7 +163,7 @@ function buildResult(name, cmdPath, manager) {
   // Fallback: return version manager commands
   return {
     ...config,
-    name: name,
+    name: packageName,
     path: cmdPath,
     reason: `Node.js binary managed by ${manager}`
   };
