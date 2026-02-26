@@ -29,6 +29,6 @@ export function checkGo(name, cmdPath) {
     install: `go install ${name}@latest`,
     uninstall: `rm ${cmdPath}`,
     update: `go install ${name}@latest`,
-    info: `go doc ${name}`
+    info: `go version -m ${cmdPath}`
   };
 }
