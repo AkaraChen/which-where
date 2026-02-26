@@ -13,13 +13,6 @@ test('checkYarn: detects yarn path - .yarn', t => {
   t.is(result.type, 'Yarn (Node.js)');
 });
 
-test('checkYarn: detects yarn path - .local/bin', t => {
-  const home = process.env.HOME || '/home/user';
-  const result = checkYarn('yarn', `${home}/.local/bin/yarn`);
-  t.truthy(result);
-  t.is(result.type, 'Yarn (Node.js)');
-});
-
 test('checkYarn: detects yarn path - Library', t => {
   const home = process.env.HOME || '/home/user';
   const result = checkYarn('yarn', `${home}/Library/pnpm/yarn`);

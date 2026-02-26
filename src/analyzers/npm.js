@@ -15,7 +15,6 @@ export function checkNpm(name, cmdPath) {
   const home = process.env.HOME || '/home/user';
   const npmGlobalPaths = [
     '/usr/local/lib/node_modules',
-    '/usr/local/bin',
     path.join(home, '.nvm'),
     path.join(home, '.npm-global')
   ];

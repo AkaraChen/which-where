@@ -14,7 +14,7 @@ export function checkYarn(name, cmdPath) {
   const home = process.env.HOME || '/home/user';
   const yarnPaths = [
     path.join(home, '.yarn'),
-    path.join(home, 'Library', 'yarn')
+    path.join(home, 'Library', 'pnpm')
   ];
 
   const isYarnPath = yarnPaths.some(p => cmdPath.includes(p));

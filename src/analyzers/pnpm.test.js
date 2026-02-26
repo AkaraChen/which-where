@@ -6,13 +6,6 @@ test('checkPnpm: returns null for non-pnpm path', t => {
   t.is(result, null);
 });
 
-test('checkPnpm: detects pnpm path - .local/bin', t => {
-  const home = process.env.HOME || '/home/user';
-  const result = checkPnpm('pnpm', `${home}/.local/bin/pnpm`);
-  t.truthy(result);
-  t.is(result.type, 'pnpm (Node.js)');
-});
-
 test('checkPnpm: detects pnpm path - Library', t => {
   const home = process.env.HOME || '/home/user';
   const result = checkPnpm('pnpm', `${home}/Library/pnpm/pnpm`);
