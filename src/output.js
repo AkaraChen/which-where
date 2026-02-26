@@ -8,8 +8,14 @@ import colors from 'ansi-colors';
  * Print analysis report
  * @param {Object} result - Analysis result
  * @param {boolean} verbose - Enable verbose output
+ * @param {boolean} porcelain - Enable porcelain mode (machine-readable)
  */
-export function printReport(result, verbose = false) {
+export function printReport(result, verbose = false, porcelain = false) {
+  if (porcelain) {
+    printReportPorcelain(result, verbose);
+    return;
+  }
+
   let output = `
 ${colors.bold('📊 Analysis Report')}
   ${colors.cyan('Source:')} ${result.type}
@@ -24,11 +30,21 @@ ${colors.bold('📊 Analysis Report')}
 
   output += `
 ${colors.bold('📦 Management Commands:')}
-  ${colors.green('Install:')}    ${result.install}
-  ${colors.red('Uninstall:')}  ${result.uninstall}
-  ${colors.yellow('Update:')}     ${result.update}
-  ${colors.magenta('Info:')}       ${result.info}
 `;
+
+  // Only show commands that have values (not null/undefined)
+  if (result.install) {
+    output += `  ${colors.green('Install:')}    ${result.install}\n`;
+  }
+  if (result.uninstall) {
+    output += `  ${colors.red('Uninstall:')}  ${result.uninstall}\n`;
+  }
+  if (result.update) {
+    output += `  ${colors.yellow('Update:')}     ${result.update}\n`;
+  }
+  if (result.info) {
+    output += `  ${colors.magenta('Info:')}       ${result.info}\n`;
+  }
 
   if (verbose) {
     output += printVerboseDetails(result);
@@ -90,6 +106,54 @@ function formatFileSize(bytes) {
 }
 
 /**
+ * Print analysis report in porcelain mode (machine-readable key=value format)
+ * @param {Object} result - Analysis result
+ * @param {boolean} verbose - Include verbose details
+ */
+export function printReportPorcelain(result, verbose = false) {
+  const lines = [
+    `type=${result.type}`,
+    `name=${result.name}`,
+    `path=${result.path}`,
+    `install=${result.install || ''}`,
+    `uninstall=${result.uninstall || ''}`,
+    `update=${result.update || ''}`,
+    `info=${result.info || ''}`,
+  ];
+
+  if (result.reason) {
+    lines.push(`reason=${result.reason}`);
+  }
+
+  if (verbose) {
+    if (result.shimDetails) {
+      lines.push(`shim_manager=${result.shimDetails.manager}`);
+      lines.push(`actual_manager=${result.shimDetails.actualManager}`);
+      if (result.shimDetails.formula) {
+        lines.push(`formula=${result.shimDetails.formula}`);
+      }
+      if (result.shimDetails.version) {
+        lines.push(`version=${result.shimDetails.version}`);
+      }
+    }
+    if (result.realPath && result.realPath !== result.path) {
+      lines.push(`real_path=${result.realPath}`);
+    }
+    if (result.fileType) {
+      lines.push(`file_type=${result.fileType}`);
+    }
+    if (result.target) {
+      lines.push(`target=${result.target}`);
+    }
+    if (result.fileSize) {
+      lines.push(`file_size=${result.fileSize}`);
+    }
+  }
+
+  console.log(lines.join('\n'));
+}
+
+/**
  * Print analysis report as JSON
  * @param {Object} result - Analysis result
  * @param {boolean} verbose - Include verbose details
@@ -114,6 +178,16 @@ export function printNotFound(cmd) {
 ${colors.red(`❌ Command '${cmd}' not found in PATH`)}
 ${colors.yellow('Hint: The command might not be installed or might not be in your PATH')}
 `);
+}
+
+/**
+ * Print command not found error in porcelain mode
+ * @param {string} cmd - Command name
+ */
+export function printNotFoundPorcelain(cmd) {
+  console.log(`error=not_found`);
+  console.log(`command=${cmd}`);
+  console.log(`message=Command '${cmd}' not found in PATH`);
 }
 
 /**

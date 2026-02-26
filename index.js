@@ -10,8 +10,10 @@ import { analyzeCommand } from './src/analyzer.js';
 import {
   printReport,
   printReportJson,
+  printReportPorcelain,
   printNotFound,
   printNotFoundJson,
+  printNotFoundPorcelain,
   printAnalyzing
 } from './src/output.js';
 
@@ -24,16 +26,19 @@ ${colors.cyan('Usage:')}
   ${colors.green('node index.js [options] <cmd1> <cmd2>')}    Analyze multiple commands
 
 ${colors.cyan('Options:')}
-  ${colors.green('--json')}     Output results in JSON format
-  ${colors.green('--verbose')}  Show detailed analysis (shim info, file type, real path)
-  ${colors.green('-v')}         Shorthand for --verbose
+  ${colors.green('--json')}       Output results in JSON format
+  ${colors.green('--porcelain')}  Output results in porcelain format (key=value, machine-readable)
+  ${colors.green('-p')}           Shorthand for --porcelain
+  ${colors.green('--verbose')}    Show detailed analysis (shim info, file type, real path)
+  ${colors.green('-v')}           Shorthand for --verbose
 
 ${colors.cyan('Examples:')}
-  node index.js node          Analyze where 'node' comes from
-  node index.js npm           Analyze where 'npm' comes from
-  node index.js cargo         Analyze where 'cargo' comes from
-  node index.js --json node   Output analysis as JSON
-  node index.js -v node       Show detailed analysis including shim info
+  node index.js node            Analyze where 'node' comes from
+  node index.js npm             Analyze where 'npm' comes from
+  node index.js cargo           Analyze where 'cargo' comes from
+  node index.js --json node     Output analysis as JSON
+  node index.js --porcelain node Output analysis as porcelain format
+  node index.js -v node         Show detailed analysis including shim info
 
 ${colors.cyan('Supported package managers:')}
   • Homebrew (macOS)
@@ -64,6 +69,10 @@ ${colors.cyan('Shim detection:')}
         type: 'boolean',
         shortFlag: 'j'
       },
+      porcelain: {
+        type: 'boolean',
+        shortFlag: 'p'
+      },
       verbose: {
         type: 'boolean',
         shortFlag: 'v'
@@ -77,7 +86,7 @@ ${colors.cyan('Shim detection:')}
  */
 function main() {
   const { input, flags } = cli;
-  const { json, verbose } = flags;
+  const { json, porcelain, verbose } = flags;
 
   if (input.length === 0) {
     cli.showHelp();
@@ -86,7 +95,7 @@ function main() {
   let foundCount = 0;
 
   for (const cmd of input) {
-    if (!json) {
+    if (!json && !porcelain) {
       printAnalyzing(cmd);
     }
 
@@ -95,6 +104,8 @@ function main() {
     if (!result) {
       if (json) {
         printNotFoundJson(cmd);
+      } else if (porcelain) {
+        printNotFoundPorcelain(cmd);
       } else {
         printNotFound(cmd);
       }
@@ -103,6 +114,8 @@ function main() {
 
     if (json) {
       printReportJson(result, verbose);
+    } else if (porcelain) {
+      printReportPorcelain(result, verbose);
     } else {
       printReport(result, verbose);
     }
@@ -110,7 +123,7 @@ function main() {
     foundCount++;
   }
 
-  if (json && foundCount === 0) {
+  if ((json || porcelain) && foundCount === 0) {
     process.exit(1);
   }
 }
