@@ -42,7 +42,8 @@ export function checkCargo(name, cmdPath) {
       install: 'curl --proto "=https" --tlsv1.2 -sSf https://sh.rustup.rs | sh',
       uninstall: 'rustup self uninstall',
       update: 'rustup update',
-      info: 'rustup show'
+      info: 'rustup show',
+      reason: 'Standard rust toolchain component'
     };
   }
 
@@ -76,6 +77,10 @@ export function checkCargo(name, cmdPath) {
     install: `cargo install ${crateName}`,
     uninstall: `cargo uninstall ${crateName}`,
     update: `cargo install ${crateName} --force`,
-    info: `cargo search ${crateName}`
+    info: `cargo search ${crateName}`,
+    reason:
+      crateName !== name
+        ? `Found in cargo install --list as '${crateName}'`
+        : 'Path matches cargo bin directory'
   };
 }

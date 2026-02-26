@@ -5,6 +5,7 @@
  */
 
 import colors from 'ansi-colors';
+import meow from 'meow';
 import { analyzeCommand } from './src/analyzer.js';
 import {
   printReport,
@@ -14,11 +15,8 @@ import {
   printAnalyzing
 } from './src/output.js';
 
-/**
- * Print usage information
- */
-function printUsage() {
-  console.log(`
+const cli = meow(
+  `
 ${colors.bold('Which-Where')} - Analyze command origins and management
 
 ${colors.cyan('Usage:')}
@@ -26,13 +24,16 @@ ${colors.cyan('Usage:')}
   ${colors.green('node index.js [options] <cmd1> <cmd2>')}    Analyze multiple commands
 
 ${colors.cyan('Options:')}
-  ${colors.green('--json')}    Output results in JSON format
+  ${colors.green('--json')}     Output results in JSON format
+  ${colors.green('--verbose')}  Show detailed analysis (shim info, file type, real path)
+  ${colors.green('-v')}         Shorthand for --verbose
 
 ${colors.cyan('Examples:')}
   node index.js node          Analyze where 'node' comes from
   node index.js npm           Analyze where 'npm' comes from
   node index.js cargo         Analyze where 'cargo' comes from
   node index.js --json node   Output analysis as JSON
+  node index.js -v node       Show detailed analysis including shim info
 
 ${colors.cyan('Supported package managers:')}
   • Homebrew (macOS)
@@ -44,29 +45,47 @@ ${colors.cyan('Supported package managers:')}
   • Go modules
   • pip (Python)
   • nvm/fnm/volta (Node.js version managers)
+  • Bun
   • System packages (apt, pacman, dnf, pkgutil)
-`);
-}
+
+${colors.cyan('Shim detection:')}
+  • fnm shims (Fast Node Manager)
+  • nvm wrappers
+  • Volta shims
+  • asdf shims
+  • rbenv shims
+  • pyenv shims
+  • SDKMAN! shims
+  • mise/rtx shims
+`,
+  {
+    importMeta: import.meta,
+    flags: {
+      json: {
+        type: 'boolean',
+        shortFlag: 'j'
+      },
+      verbose: {
+        type: 'boolean',
+        shortFlag: 'v'
+      }
+    }
+  }
+);
 
 /**
  * Main entry point
  */
 function main() {
-  const args = process.argv.slice(2);
+  const { input, flags } = cli;
 
-  if (args.length === 0) {
-    printUsage();
-    process.exit(0);
+  if (input.length === 0) {
+    cli.showHelp();
   }
 
-  // Parse options
-  const jsonOutput = args.includes('--json');
-  const commands = args.filter(arg => !arg.startsWith('--'));
-
-  if (commands.length === 0) {
-    printUsage();
-    process.exit(0);
-  }
+  const jsonOutput = flags.json;
+  const verbose = flags.verbose;
+  const commands = input;
 
   const results = [];
 
@@ -75,7 +94,7 @@ function main() {
       printAnalyzing(cmd);
     }
 
-    const result = analyzeCommand(cmd);
+    const result = analyzeCommand(cmd, verbose);
 
     if (!result) {
       if (jsonOutput) {
@@ -87,9 +106,9 @@ function main() {
     }
 
     if (jsonOutput) {
-      printReportJson(result);
+      printReportJson(result, verbose);
     } else {
-      printReport(result);
+      printReport(result, verbose);
     }
 
     results.push(result);

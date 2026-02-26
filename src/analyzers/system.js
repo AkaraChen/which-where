@@ -88,13 +88,16 @@ export function checkSystem(name, cmdPath) {
   }
 
   // Fallback for system commands without package manager info
+  // Be honest - we don't know how to manage this
   return {
-    type: 'System',
+    type: 'System (unknown package)',
     name: name,
     path: cmdPath,
-    install: 'Manual installation or system package',
-    uninstall: `sudo rm ${cmdPath}`,
-    update: 'System dependent',
-    info: `file ${cmdPath}`
+    install: 'System package manager or manual installation',
+    reinstall: 'Reinstall via system package manager',
+    uninstall: 'Unknown (check system documentation)',
+    update: 'System update or manual reinstallation',
+    info: `file ${cmdPath}`,
+    reason: 'Command found in system path but package manager could not be determined'
   };
 }

@@ -83,17 +83,9 @@ export function checkPip(name, cmdPath) {
     };
   }
 
-  // Fallback to command name
-  return {
-    type: 'pip',
-    name: name,
-    path: cmdPath,
-    install: `pip install ${name}`,
-    reinstall: `pip install --force-reinstall ${name}`,
-    uninstall: `pip uninstall ${name}`,
-    update: `pip install --upgrade ${name}`,
-    info: `pip show ${name}`
-  };
+  // Don't return a result if we can't verify the package
+  // This prevents false positives for Python path commands that aren't pip-installed
+  return null;
 }
 
 function exec(command) {
