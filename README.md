@@ -7,6 +7,7 @@ A CLI tool that tells you which package manager installed a command and provides
 ## Features
 
 - 🔍 **Detect Package Source** - Identifies if a command was installed via Homebrew, npm, yarn, pnpm, Cargo, Go, pip, nvm, bun, or system packages
+- 🔁 **Shim Detection** - Detects shims from fnm, nvm, volta, asdf, pyenv, rbenv, SDKMAN!, and mise/rtx
 - 📦 **Management Commands** - Provides ready-to-use commands for installing, uninstalling, updating, and getting info about packages
 - 🎨 **Clean Output** - Color-coded, easy-to-read reports with JSON support
 - 🧪 **Well Tested** - Unit tests covering all analyzers
@@ -26,6 +27,19 @@ A CLI tool that tells you which package manager installed a command and provides
 | nvm/fnm/volta (Node.js version managers) | ✅        |
 | Bun                                      | ✅        |
 | System (apt, pacman, dnf, pkgutil)       | ✅        |
+
+### Shim Detection
+
+| Shim Manager   | Detection |
+| -------------- | --------- |
+| fnm shims      | ✅        |
+| nvm wrappers   | ✅        |
+| volta shims    | ✅        |
+| asdf shims     | ✅        |
+| pyenv shims    | ✅        |
+| rbenv shims    | ✅        |
+| SDKMAN! shims  | ✅        |
+| mise/rtx shims | ✅        |
 
 ## Installation
 
@@ -49,6 +63,10 @@ node index.js node npm git
 
 # Output as JSON (for script integration)
 node index.js --json node
+
+# Show verbose details (shim info, file type, real path)
+node index.js --verbose node
+node index.js -v node
 
 # Show help
 node index.js
@@ -121,10 +139,13 @@ which-where/
 │   ├── output.js            # Output formatter
 │   ├── utils.js             # Utility functions
 │   └── analyzers/           # Package manager analyzers
+│       ├── index.js         # Analyzer exports
+│       ├── shim.js          # Shim detection (fnm, nvm, volta, asdf, etc.)
 │       ├── brew.js          # Homebrew
-│       ├── npm.js           # npm
+│       ├── npm.js           # npm (includes checkBrewNpm)
 │       ├── yarn.js          # Yarn
 │       ├── pnpm.js          # pnpm
+│       ├── bun.js           # Bun
 │       ├── cargo.js         # Cargo/Rust
 │       ├── go.js            # Go
 │       ├── pip.js           # Python pip
