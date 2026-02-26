@@ -47,7 +47,13 @@ ${colors.yellow('Hint: The command might not be installed or might not be in you
  * @param {string} cmd - Command name
  */
 export function printNotFoundJson(cmd) {
-  console.log(JSON.stringify({ error: 'not_found', command: cmd, message: `Command '${cmd}' not found in PATH` }, null, 2));
+  console.log(
+    JSON.stringify(
+      { error: 'not_found', command: cmd, message: `Command '${cmd}' not found in PATH` },
+      null,
+      2
+    )
+  );
 }
 
 /**

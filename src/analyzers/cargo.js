@@ -14,12 +14,26 @@ export function checkCargo(name, cmdPath) {
   const home = process.env.HOME || '/home/user';
   const cargoPath = `${home}/.cargo/bin`;
 
-  if (!cmdPath.startsWith(cargoPath) && !cmdPath.includes('.cargo/bin') && !cmdPath.includes('.rustup')) {
+  if (
+    !cmdPath.startsWith(cargoPath) &&
+    !cmdPath.includes('.cargo/bin') &&
+    !cmdPath.includes('.rustup')
+  ) {
     return null;
   }
 
   // Check if it's a rustup-managed toolchain component
-  const toolchainComponents = ['cargo', 'rustc', 'rustup', 'rustdoc', 'rls', 'rustfmt', 'clippy-driver', 'cargo-fmt', 'cargo-clippy'];
+  const toolchainComponents = [
+    'cargo',
+    'rustc',
+    'rustup',
+    'rustdoc',
+    'rls',
+    'rustfmt',
+    'clippy-driver',
+    'cargo-fmt',
+    'cargo-clippy'
+  ];
   if (toolchainComponents.includes(name)) {
     return {
       type: 'Rustup (Rust toolchain)',

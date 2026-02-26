@@ -14,17 +14,17 @@ A CLI tool that tells you which package manager installed a command and provides
 
 ## Supported Package Managers
 
-| Package Manager | Detection |
-|----------------|-----------|
-| Homebrew (macOS) | ✅ |
-| npm (Node.js) | ✅ |
-| yarn (Node.js) | ✅ |
-| pnpm (Node.js) | ✅ |
-| Cargo (Rust) | ✅ |
-| Go modules | ✅ |
-| pip (Python) | ✅ |
-| nvm/fnm/volta (Node.js version managers) | ✅ |
-| System (apt, pacman, dnf, pkgutil) | ✅ |
+| Package Manager                          | Detection |
+| ---------------------------------------- | --------- |
+| Homebrew (macOS)                         | ✅        |
+| npm (Node.js)                            | ✅        |
+| yarn (Node.js)                           | ✅        |
+| pnpm (Node.js)                           | ✅        |
+| Cargo (Rust)                             | ✅        |
+| Go modules                               | ✅        |
+| pip (Python)                             | ✅        |
+| nvm/fnm/volta (Node.js version managers) | ✅        |
+| System (apt, pacman, dnf, pkgutil)       | ✅        |
 
 ## Installation
 
@@ -160,14 +160,14 @@ Each analyzer returns an object with the following structure:
 
 ```typescript
 {
-  type: string;        // Package manager name
-  name: string;        // Package name
-  path: string;        // Full path to the command
-  install: string;     // Command to install
-  reinstall: string;   // Command to reinstall
-  uninstall: string;   // Command to uninstall
-  update: string;      // Command to update
-  info: string         // Command to get info
+  type: string; // Package manager name
+  name: string; // Package name
+  path: string; // Full path to the command
+  install: string; // Command to install
+  reinstall: string; // Command to reinstall
+  uninstall: string; // Command to uninstall
+  update: string; // Command to update
+  info: string; // Command to get info
 }
 ```
 

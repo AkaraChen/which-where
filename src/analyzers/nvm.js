@@ -17,21 +17,11 @@ export function checkNvm(name, cmdPath) {
   if (!nodeCommands.includes(name)) return null;
 
   // Check for nvm path pattern
-  const nvmPatterns = [
-    '/.nvm/',
-    '/.nvmrc',
-    '.nvm/'
-  ];
+  const nvmPatterns = ['/.nvm/', '/.nvmrc', '.nvm/'];
 
-  const fnmPatterns = [
-    '/.fnm/',
-    '.fnm/'
-  ];
+  const fnmPatterns = ['/.fnm/', '.fnm/'];
 
-  const voltaPatterns = [
-    '/.volta/',
-    'volta/'
-  ];
+  const voltaPatterns = ['/.volta/', 'volta/'];
 
   const isNvm = nvmPatterns.some(p => cmdPath.includes(p));
   const isFnm = fnmPatterns.some(p => cmdPath.includes(p));

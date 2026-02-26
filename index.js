@@ -6,7 +6,13 @@
 
 import colors from 'ansi-colors';
 import { analyzeCommand } from './src/analyzer.js';
-import { printReport, printReportJson, printNotFound, printNotFoundJson, printAnalyzing } from './src/output.js';
+import {
+  printReport,
+  printReportJson,
+  printNotFound,
+  printNotFoundJson,
+  printAnalyzing
+} from './src/output.js';
 
 /**
  * Print usage information

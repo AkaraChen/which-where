@@ -18,11 +18,12 @@ export function checkPip(name, cmdPath) {
   if (!pipPath) return null;
 
   // Check if the command path is under a Python site-packages or bin directory
-  const isPythonPath = cmdPath.includes('site-packages') ||
-                       cmdPath.includes('.venv') ||
-                       cmdPath.includes('virtualenv') ||
-                       cmdPath.includes('.pyenv') ||
-                       cmdPath.includes('bin') && cmdPath.includes('python');
+  const isPythonPath =
+    cmdPath.includes('site-packages') ||
+    cmdPath.includes('.venv') ||
+    cmdPath.includes('virtualenv') ||
+    cmdPath.includes('.pyenv') ||
+    (cmdPath.includes('bin') && cmdPath.includes('python'));
 
   if (!isPythonPath) return null;
 
@@ -67,7 +68,8 @@ export function checkPip(name, cmdPath) {
   }
 
   // Verify package exists
-  const verifyShow = exec(`pip3 show ${packageName} 2>/dev/null`) || exec(`pip show ${packageName} 2>/dev/null`);
+  const verifyShow =
+    exec(`pip3 show ${packageName} 2>/dev/null`) || exec(`pip show ${packageName} 2>/dev/null`);
   if (verifyShow) {
     return {
       type: 'pip',

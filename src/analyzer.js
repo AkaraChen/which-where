@@ -19,15 +19,15 @@ export function analyzeCommand(name) {
 
   // Run analyzers in order - version managers first, then package managers
   const analyzerOrder = [
-    analyzers.checkNvm,      // Node.js version managers (nvm, fnm, volta)
-    analyzers.checkBrew,     // Homebrew (checked early for macOS)
-    analyzers.checkCargo,    // Rust/Cargo
-    analyzers.checkGo,       // Go modules
-    analyzers.checkPnpm,     // pnpm
-    analyzers.checkYarn,     // yarn
-    analyzers.checkNpm,      // npm
-    analyzers.checkPip,      // Python pip
-    analyzers.checkSystem    // System packages (apt, pacman, dnf, pkgutil)
+    analyzers.checkNvm, // Node.js version managers (nvm, fnm, volta)
+    analyzers.checkBrew, // Homebrew (checked early for macOS)
+    analyzers.checkCargo, // Rust/Cargo
+    analyzers.checkGo, // Go modules
+    analyzers.checkPnpm, // pnpm
+    analyzers.checkYarn, // yarn
+    analyzers.checkNpm, // npm
+    analyzers.checkPip, // Python pip
+    analyzers.checkSystem // System packages (apt, pacman, dnf, pkgutil)
   ];
 
   for (const analyzer of analyzerOrder) {

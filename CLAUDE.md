@@ -27,11 +27,13 @@ npm run format:check  # Check formatting
 **Entry point:** `index.js` - CLI handler that parses args and orchestrates analysis
 
 **Core modules:**
+
 - `src/analyzer.js` - Main analysis logic; runs package manager checkers in priority order
 - `src/output.js` - Colorized console output formatter (supports both text and JSON)
 - `src/utils.js` - Shell command execution wrapper (`execSync` with error handling)
 
 **Analyzer modules** (`src/analyzers/`): Each exports a `checkX(name, path)` function that returns analysis result or null:
+
 - `nvm.js` - Node.js version managers (nvm, fnm, volta) - checked first
 - `brew.js` - Homebrew (macOS)
 - `cargo.js` - Rust/Cargo
@@ -53,6 +55,7 @@ This project uses **ES modules (ESM)**. All files use `import`/`export` syntax i
 ## Output Format
 
 Each analyzer returns an object with:
+
 ```javascript
 {
   type: string,        // Package manager name
