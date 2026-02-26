@@ -38,3 +38,65 @@ test('checkNvm: detects volta path', t => {
     t.pass('skipped: volta not detected');
   }
 });
+
+test('checkNvm: node returns version manager commands', t => {
+  const result = checkNvm('node', '/Users/test/.fnm/node-versions/v16.0.0/bin/node');
+  if (result) {
+    t.regex(result.type, /fnm/);
+    t.regex(result.install, /fnm install/);
+  } else {
+    t.pass('skipped: fnm not detected');
+  }
+});
+
+test('checkNvm: returns npm commands for npm managed by fnm', t => {
+  const result = checkNvm('npm', '/Users/test/.fnm/node-versions/v16.0.0/bin/npm');
+  if (result) {
+    t.regex(result.type, /npm.*via fnm/);
+    t.regex(result.install, /npm install -g npm/);
+    t.notRegex(result.install, /fnm install/);
+  } else {
+    t.pass('skipped: fnm not detected');
+  }
+});
+
+test('checkNvm: returns npm commands for corepack managed by fnm', t => {
+  const result = checkNvm('corepack', '/Users/test/.fnm/node-versions/v16.0.0/bin/corepack');
+  if (result) {
+    t.regex(result.type, /npm.*via fnm/);
+    t.regex(result.install, /npm install -g corepack/);
+    t.notRegex(result.install, /fnm install/);
+  } else {
+    t.pass('skipped: fnm not detected');
+  }
+});
+
+test('checkNvm: returns npm commands for npm managed by nvm', t => {
+  const result = checkNvm('npm', '/Users/test/.nvm/versions/node/v16.0.0/bin/npm');
+  if (result) {
+    t.regex(result.type, /npm.*via nvm/);
+    t.regex(result.install, /npm install -g npm/);
+  } else {
+    t.pass('skipped: nvm not detected');
+  }
+});
+
+test('checkNvm: returns npm commands for npx managed by nvm', t => {
+  const result = checkNvm('npx', '/Users/test/.nvm/versions/node/v16.0.0/bin/npx');
+  if (result) {
+    t.regex(result.type, /npm.*via nvm/);
+    t.regex(result.install, /npm install -g npx/);
+  } else {
+    t.pass('skipped: nvm not detected');
+  }
+});
+
+test('checkNvm: returns npm commands for corepack managed by volta', t => {
+  const result = checkNvm('corepack', '/Users/test/.volta/tools/image/node/16.0.0/bin/corepack');
+  if (result) {
+    t.regex(result.type, /npm.*via volta/);
+    t.regex(result.install, /npm install -g corepack/);
+  } else {
+    t.pass('skipped: volta not detected');
+  }
+});

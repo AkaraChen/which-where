@@ -3,6 +3,7 @@
  */
 
 import fs from 'fs';
+import path from 'path';
 import { exec } from '../utils.js';
 
 const MANAGER_CONFIGS = {
@@ -65,6 +66,16 @@ export function checkNvm(name, cmdPath) {
 }
 
 /**
+ * Resolve the npm binary path from a managed command's path
+ * @param {string} cmdPath - Full path to the command
+ * @returns {string|null} - Path to npm or null if not found
+ */
+function resolveNpmPath(cmdPath) {
+  const binDir = path.dirname(cmdPath);
+  return path.join(binDir, 'npm');
+}
+
+/**
  * Build a result object for a given version manager
  * @param {string} name - Command name
  * @param {string} cmdPath - Full path to the command
@@ -73,6 +84,34 @@ export function checkNvm(name, cmdPath) {
  */
 function buildResult(name, cmdPath, manager) {
   const config = MANAGER_CONFIGS[manager];
+
+  // For node command, return version manager commands (existing behavior)
+  if (name === 'node') {
+    return {
+      ...config,
+      name: name,
+      path: cmdPath,
+      reason: `Node.js binary managed by ${manager}`
+    };
+  }
+
+  // For npm, npx, corepack: resolve npm and return npm-based commands
+  const npmPath = resolveNpmPath(cmdPath);
+  if (npmPath) {
+    return {
+      type: `npm (via ${manager})`,
+      name: name,
+      path: cmdPath,
+      install: `${npmPath} install -g ${name}`,
+      reinstall: `${npmPath} install -g --force ${name}`,
+      uninstall: `${npmPath} uninstall -g ${name}`,
+      update: `${npmPath} update -g ${name}`,
+      info: `${npmPath} view ${name}`,
+      reason: `npm-managed package via ${manager}`
+    };
+  }
+
+  // Fallback: return version manager commands
   return {
     ...config,
     name: name,
