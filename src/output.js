@@ -20,8 +20,13 @@ export function printReport(result, verbose = false, porcelain = false) {
 ${colors.bold('📊 Analysis Report')}
   ${colors.cyan('Source:')} ${result.type}
   ${colors.cyan('Package:')} ${result.name}
-  ${colors.cyan('Path:')} ${result.path}
+  ${colors.cyan('Path:')} ${result.realPath || result.path}
 `;
+
+  // Show symlink info if this is a symbolic link
+  if (result.realPath && result.realPath !== result.path) {
+    output += `  ${colors.gray(`Symlink: ${result.path}`)}\n`;
+  }
 
   // Show reason if present (explains confidence/uncertainty)
   if (result.reason) {

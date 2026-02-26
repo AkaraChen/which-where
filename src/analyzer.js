@@ -3,6 +3,7 @@
  */
 
 import fs from 'fs';
+import path from 'path';
 import { exec } from './utils.js';
 import * as analyzers from './analyzers/index.js';
 import { detectShim } from './analyzers/shim.js';
@@ -20,12 +21,17 @@ export function analyzeCommand(name, verbose = false) {
     return null;
   }
 
-  const result = detectShim(name, cmdPath) || runAnalyzers(name, cmdPath);
+  // Extract the command name from the path if name is a full path
+  const cmdName = name.includes('/') ? path.basename(name) : name;
+
+  const result = detectShim(cmdName, cmdPath) || runAnalyzers(cmdName, cmdPath);
 
   if (!result) {
     return null;
   }
 
+  // Always add symlink info for path display
+  addSymlinkInfo(result, cmdPath);
   return verbose ? enrichWithVerboseData(result, cmdPath) : result;
 }
 
