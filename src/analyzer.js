@@ -46,6 +46,7 @@ function runAnalyzers(name, cmdPath) {
     analyzers.checkNvm,
     analyzers.checkBun,
     analyzers.checkBrew,
+    analyzers.checkApp,
     analyzers.checkCargo,
     analyzers.checkGo,
     analyzers.checkPnpm,

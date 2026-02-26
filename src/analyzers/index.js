@@ -2,6 +2,7 @@
  * Analyzer index - exports all analyzers
  */
 
+export { checkApp } from './app.js';
 export { checkBrew } from './brew.js';
 export { checkBrewNpm } from './npm.js';
 export { checkBun } from './bun.js';
