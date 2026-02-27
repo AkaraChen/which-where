@@ -64,20 +64,20 @@ npm install
 
 ```bash
 # Analyze a single command
-node index.js node
+which-where node
 
 # Analyze multiple commands
-node index.js node npm git
+which-where node npm git
 
 # Output as JSON (for script integration)
-node index.js --json node
+which-where --json node
 
 # Show verbose details (shim info, file type, real path)
-node index.js --verbose node
-node index.js -v node
+which-where --verbose node
+which-where -v node
 
 # Show help
-node index.js
+which-where --help
 ```
 
 ### Example Output
