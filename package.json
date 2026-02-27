@@ -23,11 +23,11 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/akrc/which-where.git"
+    "url": "https://github.com/AkaraChen/which-where.git"
   },
-  "homepage": "https://github.com/akrc/which-where#readme",
+  "homepage": "https://github.com/AkaraChen/which-where#readme",
   "bugs": {
-    "url": "https://github.com/akrc/which-where/issues"
+    "url": "https://github.com/AkaraChen/which-where/issues"
   },
   "files": [
     "index.js",

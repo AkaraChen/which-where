@@ -43,9 +43,17 @@ A CLI tool that tells you which package manager installed a command and provides
 
 ## Installation
 
+### Install globally from GitHub
+
+```bash
+npm install -g https://github.com/AkaraChen/which-where.git
+```
+
+### Install from source
+
 ```bash
 # Clone the repository
-git clone https://github.com/akrc/which-where.git
+git clone https://github.com/AkaraChen/which-where.git
 cd which-where
 
 # Install dependencies
