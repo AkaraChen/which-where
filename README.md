@@ -83,35 +83,38 @@ which-where --help
 ### Example Output
 
 ```bash
-$ node index.js node
+$ which-where node
 
 🔍 Analyzing command: node
 
 📊 Analysis Report
-  Source: Homebrew
+  Source: fnm (Fast Node Manager)
   Package: node
-  Path: /opt/homebrew/bin/node
+  Path: /Users/akrc/.local/state/fnm_multishells/61543_1772165027621/bin/node
+  Reason: Node.js binary managed by fnm
 
 📦 Management Commands:
-  Install:    brew install node
-  Uninstall:  brew uninstall node
-  Update:     brew upgrade node
-  Info:       brew info node
+  Install:    fnm install <version>
+  Uninstall:  fnm uninstall <version>
+  Update:     fnm install --latest
+  Info:       fnm list
 ```
 
 ### JSON Output
 
 ```bash
-$ node index.js --json node
+$ which-where --json node
 
 {
-  "type": "Homebrew",
+  "type": "fnm (Fast Node Manager)",
   "name": "node",
-  "path": "/opt/homebrew/bin/node",
-  "install": "brew install node",
-  "uninstall": "brew uninstall node",
-  "update": "brew upgrade node",
-  "info": "brew info node"
+  "path": "/Users/akrc/.local/state/fnm_multishells/61543_1772165027621/bin/node",
+  "install": "fnm install <version>",
+  "reinstall": "fnm use <version> && npm install -g <package>",
+  "uninstall": "fnm uninstall <version>",
+  "update": "fnm install --latest",
+  "info": "fnm list",
+  "reason": "Node.js binary managed by fnm"
 }
 ```
 
